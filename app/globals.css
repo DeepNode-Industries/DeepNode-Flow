@@ -1,26 +1,213 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* DeepNode brand palette */
+  --color-dn-bg: #080810;
+  --color-dn-surface: #0e0e1c;
+  --color-dn-surface-2: #13131f;
+  --color-dn-border: #1e1e35;
+  --color-dn-border-light: #2a2a45;
+
+  --color-dn-purple: #7c3aed;
+  --color-dn-purple-light: #a855f7;
+  --color-dn-cyan: #06b6d4;
+  --color-dn-cyan-light: #22d3ee;
+  --color-dn-blue: #3b82f6;
+  --color-dn-blue-light: #60a5fa;
+  --color-dn-pink: #ec4899;
+  --color-dn-green: #10b981;
+  --color-dn-amber: #f59e0b;
+  --color-dn-red: #ef4444;
+
+  --font-heading: var(--font-space-grotesk);
+  --font-body: var(--font-inter);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #080810;
+  --foreground: #e2e8f0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter, 'Inter', system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-space-grotesk, 'Space Grotesk', system-ui, sans-serif);
+}
+
+/* DeepNode glass card utility */
+.dn-glass {
+  background: rgba(14, 14, 28, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(30, 30, 53, 0.8);
+}
+
+.dn-glass-bright {
+  background: rgba(19, 19, 31, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(42, 42, 69, 0.9);
+}
+
+/* Neon glow effects */
+.dn-glow-purple {
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.3), 0 0 60px rgba(124, 58, 237, 0.1);
+}
+
+.dn-glow-cyan {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3), 0 0 60px rgba(6, 182, 212, 0.1);
+}
+
+.dn-glow-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 60px rgba(59, 130, 246, 0.1);
+}
+
+/* Gradient text */
+.dn-gradient-text {
+  background: linear-gradient(135deg, #a855f7 0%, #06b6d4 50%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dn-gradient-text-purple {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animated grid background */
+.dn-grid-bg {
+  background-image:
+    linear-gradient(rgba(124, 58, 237, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 58, 237, 0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0e0e1c;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a45;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed;
+}
+
+/* React Flow overrides */
+.react-flow__background {
+  background-color: #080810 !important;
+}
+.react-flow__minimap {
+  background-color: #0e0e1c !important;
+  border: 1px solid #1e1e35 !important;
+  border-radius: 12px !important;
+}
+.react-flow__controls {
+  border: 1px solid #1e1e35 !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  background: #0e0e1c !important;
+}
+.react-flow__controls-button {
+  background: #0e0e1c !important;
+  border-bottom: 1px solid #1e1e35 !important;
+  fill: #94a3b8 !important;
+  color: #94a3b8 !important;
+}
+.react-flow__controls-button:hover {
+  background: #13131f !important;
+  fill: #a855f7 !important;
+}
+.react-flow__edge-path {
+  stroke: #7c3aed !important;
+  stroke-width: 2 !important;
+}
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: #06b6d4 !important;
+  stroke-width: 2.5 !important;
+}
+.react-flow__connection-path {
+  stroke: #a855f7 !important;
+  stroke-width: 2 !important;
+}
+.react-flow__handle {
+  background: #7c3aed !important;
+  border: 2px solid #0e0e1c !important;
+  width: 10px !important;
+  height: 10px !important;
+}
+.react-flow__handle:hover,
+.react-flow__handle-connecting {
+  background: #06b6d4 !important;
+  transform: scale(1.4);
+}
+
+/* Node selection */
+.react-flow__node.selected > div {
+  box-shadow: 0 0 0 2px #7c3aed, 0 0 20px rgba(124, 58, 237, 0.4) !important;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-neon {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-neon {
+  animation: pulse-neon 2s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
 }
