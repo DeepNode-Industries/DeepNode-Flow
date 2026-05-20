@@ -104,9 +104,14 @@ export interface Template {
   workflow: Omit<Workflow, "id" | "createdAt" | "updatedAt" | "executionCount">;
 }
 
+/** AI provider identifier used across nodes and the unified AI route */
+export type AIProvider = "openai" | "openrouter" | "grok";
+
 export interface Settings {
   openaiKey: string;
   openrouterKey: string;
+  /** xAI API key — used for Grok models (grok-3-mini, grok-3, grok-2-vision-1212) */
+  xaiKey: string;
   whatsappToken: string;
   whatsappPhoneId: string;
   smtpHost: string;

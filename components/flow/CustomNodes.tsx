@@ -146,6 +146,7 @@ export const NODE_TYPES = {
   "ai-summarizer": memo(BaseNode),
   "ai-json-extractor": memo(BaseNode),
   "ai-agent": memo(BaseNode),
+  "grok-chat": memo(BaseNode),
   // Actions
   "http-request": memo(BaseNode),
   "send-email": memo(BaseNode),

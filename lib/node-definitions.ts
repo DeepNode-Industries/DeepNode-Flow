@@ -79,6 +79,13 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         { label: "GPT-4o", value: "gpt-4o" },
         { label: "Claude Sonnet", value: "claude-3-5-sonnet" },
         { label: "Llama 3.3", value: "llama-3.3-70b" },
+        { label: "Grok xAI — grok-3-mini free", value: "grok-3-mini" },
+        { label: "Grok xAI — grok-3", value: "grok-3" },
+      ]},
+      { key: "provider", label: "Provider", type: "select", options: [
+        { label: "OpenAI", value: "openai" },
+        { label: "OpenRouter", value: "openrouter" },
+        { label: "Grok — xAI (grok-3-mini free)", value: "grok" },
       ]},
       { key: "prompt", label: "Prompt", type: "textarea", placeholder: "Escribe el prompt aquí..." },
       { key: "maxTokens", label: "Max Tokens", type: "number", placeholder: "500" },
@@ -144,8 +151,43 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
       { key: "model", label: "Modelo", type: "select", options: [
         { label: "GPT-4o", value: "gpt-4o" },
         { label: "Claude Opus", value: "claude-3-5-opus" },
+        { label: "Grok xAI — grok-3", value: "grok-3" },
+        { label: "Grok xAI — grok-3-mini", value: "grok-3-mini" },
+      ]},
+      { key: "provider", label: "Provider", type: "select", options: [
+        { label: "OpenAI", value: "openai" },
+        { label: "OpenRouter", value: "openrouter" },
+        { label: "Grok — xAI (grok-3-mini free)", value: "grok" },
       ]},
       { key: "systemPrompt", label: "System Prompt", type: "textarea", placeholder: "Eres un asistente..." },
+    ],
+  },
+  // Grok Chat — dedicated node for xAI Grok
+  {
+    type: "grok-chat",
+    category: "ai",
+    label: "Grok Chat",
+    description: "Conversacional con Grok AI de xAI",
+    icon: "Zap",
+    color: "#000000",
+    accentColor: "#1a1a1a",
+    defaultConfig: {
+      model: "grok-3-mini",
+      provider: "grok",
+      maxTokens: "500",
+      temperature: "0.7",
+      systemPrompt: "Eres un asistente útil dentro de DeepNode Flow.",
+    },
+    configFields: [
+      { key: "model", label: "Modelo Grok", type: "select", options: [
+        { label: "grok-3-mini (rápido · free)", value: "grok-3-mini" },
+        { label: "grok-3 (potente)", value: "grok-3" },
+        { label: "grok-vision (multimodal)", value: "grok-vision" },
+      ]},
+      { key: "systemPrompt", label: "System Prompt", type: "textarea", placeholder: "Eres un asistente útil..." },
+      { key: "prompt", label: "Prompt / Mensaje", type: "textarea", placeholder: "{{mensaje}} o escribe aquí..." },
+      { key: "maxTokens", label: "Max Tokens", type: "number", placeholder: "500" },
+      { key: "temperature", label: "Temperature (0–1)", type: "number", placeholder: "0.7" },
     ],
   },
   // ACTIONS

@@ -1,5 +1,70 @@
-import type { Workflow, ExecutionLog, ExecutionStep, NodeStatus } from "./types";
-import { saveExecutionLog, saveWorkflow, getWorkflow } from "./storage";
+import type { Workflow, ExecutionLog, ExecutionStep, NodeStatus, NodeConfig } from "./types";
+import { saveExecutionLog, saveWorkflow, getWorkflow, getSettings } from "./storage";
+
+// ─── Grok simulation helper ────────────────────────────────────────────────
+
+interface NodeExecutionResult {
+  success: boolean;
+  output: Record<string, unknown>;
+  log: string;
+}
+
+function simulateGrokChat(prompt: string): NodeExecutionResult {
+  const excerpt = prompt.substring(0, 40);
+  return {
+    success: true,
+    output: {
+      response: `[Grok Demo] Respuesta simulada para: "${excerpt}..."`,
+      tokens: 64,
+    },
+    log: "[Grok AI Demo] Respuesta simulada (64 tokens)",
+  };
+}
+
+// ─── Unified AI node executor (production) ────────────────────────────────
+
+async function executeAINode(
+  nodeType: string,
+  config: NodeConfig
+): Promise<NodeExecutionResult> {
+  const provider = String(config.provider ?? "grok");
+  const model = String(config.model ?? "grok-3-mini");
+  const prompt = String(config.prompt ?? config.systemPrompt ?? "");
+  const maxTokens = Number(config.maxTokens ?? 500);
+  const temperature = Number(config.temperature ?? 0.7);
+  const systemPrompt =
+    nodeType === "grok-chat"
+      ? String(config.systemPrompt ?? "Eres un asistente útil dentro de DeepNode Flow.")
+      : "Eres un asistente empresarial.";
+
+  const res = await fetch("/api/ai", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      provider,
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt },
+      ],
+      maxTokens,
+      temperature,
+    }),
+  });
+
+  interface AIResponse { response?: string; tokens?: number; error?: string }
+  const data = (await res.json()) as AIResponse;
+
+  if (!res.ok || data.error) {
+    return { success: false, output: { error: data.error }, log: `[Grok AI] Error: ${data.error}` };
+  }
+
+  return {
+    success: true,
+    output: { response: data.response ?? "", tokens: data.tokens ?? 0 },
+    log: `[Grok AI] Respuesta generada (${data.tokens ?? 0} tokens)`,
+  };
+}
 
 export type ExecutionCallback = (log: ExecutionLog) => void;
 
@@ -56,16 +121,49 @@ function getExecutionOrder(workflow: Workflow): string[] {
   return order;
 }
 
-// Simulate node execution and return a step
+// Execute a single node — real in production, simulated in demo
 async function simulateNode(
   nodeId: string,
   nodeType: string,
   nodeLabel: string,
+  nodeConfig: NodeConfig,
   onStep: (step: ExecutionStep) => void
 ): Promise<ExecutionStep> {
   const delay = 400 + Math.random() * 1200;
   await sleep(delay);
 
+  const settings = getSettings();
+  const isProduction = settings.mode === "production";
+
+  // grok-chat: real call in production, simulation otherwise
+  if (nodeType === "grok-chat") {
+    let result: NodeExecutionResult;
+
+    if (isProduction) {
+      try {
+        result = await executeAINode(nodeType, nodeConfig);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Error desconocido";
+        result = { success: false, output: { error: msg }, log: `[Grok AI] Error: ${msg}` };
+      }
+    } else {
+      const prompt = String(nodeConfig.prompt ?? nodeConfig.systemPrompt ?? "");
+      result = simulateGrokChat(prompt);
+    }
+
+    const step: ExecutionStep = {
+      nodeId,
+      nodeLabel,
+      status: result.success ? "success" : "error",
+      message: result.log,
+      timestamp: nowISO(),
+      output: result.success ? result.output : undefined,
+    };
+    onStep(step);
+    return step;
+  }
+
+  // All other nodes: use standard simulation
   const step = buildSimulatedStep(nodeId, nodeType, nodeLabel);
   onStep(step);
   return step;
@@ -93,6 +191,11 @@ function buildSimulatedStep(nodeId: string, nodeType: string, nodeLabel: string)
       "JSON extraído exitosamente del documento",
     ],
     "ai-agent": ["Agente ejecutó 3 pasos y generó respuesta", "AI Agent completó la tarea en 2.1s"],
+    "grok-chat": [
+      "[Grok AI] Respuesta generada (64 tokens)",
+      "[Grok AI] grok-3-mini respondió en 0.8s",
+      "[Grok AI] Conversación completada exitosamente",
+    ],
     "http-request": ["HTTP 200 OK — Respuesta recibida de API externa", "API respondió en 340ms con datos"],
     "send-email": ["Email enviado a cliente@empresa.com", "Correo entregado correctamente"],
     "send-whatsapp": ["Mensaje WhatsApp enviado (+52 55 XXXX XXXX)", "WhatsApp entregado exitosamente"],
@@ -164,7 +267,7 @@ export async function executeWorkflow(
       continue;
     }
 
-    const step = await simulateNode(nodeId, node.type, node.label, (s) => {
+    const step = await simulateNode(nodeId, node.type, node.label, node.config, (s) => {
       const updatedSteps = [...log.steps, s];
       onUpdate({ ...log, steps: updatedSteps });
     });

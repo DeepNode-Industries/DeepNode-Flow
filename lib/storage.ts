@@ -99,6 +99,7 @@ export function saveExecutionLog(log: ExecutionLog): void {
 const DEFAULT_SETTINGS: Settings = {
   openaiKey: "",
   openrouterKey: "",
+  xaiKey: "",
   whatsappToken: "",
   whatsappPhoneId: "",
   smtpHost: "",

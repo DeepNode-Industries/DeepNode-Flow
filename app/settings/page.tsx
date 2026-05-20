@@ -32,6 +32,7 @@ const SECTIONS: {
     fields: [
       { key: "openaiKey", label: "OpenAI API Key", placeholder: "sk-...", type: "password", hint: "Requerido para nodos de IA con modelos GPT" },
       { key: "openrouterKey", label: "OpenRouter API Key", placeholder: "sk-or-...", type: "password", hint: "Alternativa a OpenAI con acceso a múltiples modelos" },
+      { key: "xaiKey", label: "xAI API Key (Grok)", placeholder: "xai-xxxx", type: "password", hint: "Para nodos Grok Chat (grok-3-mini free). Obtén en console.x.ai" },
     ],
   },
   {
@@ -107,6 +108,7 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({
     openaiKey: "",
     openrouterKey: "",
+    xaiKey: "",
     whatsappToken: "",
     whatsappPhoneId: "",
     smtpHost: "",

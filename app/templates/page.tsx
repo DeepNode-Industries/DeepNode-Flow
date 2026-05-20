@@ -15,7 +15,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   UserPlus, BarChart2, Receipt, Headphones, Package, Zap,
 };
 
-const CATEGORIES = ["Todos", "Ventas", "Reportes", "Finanzas", "Soporte", "Operaciones", "Integraciones"];
+const CATEGORIES = ["Todos", "IA", "Ventas", "Reportes", "Finanzas", "Soporte", "Operaciones", "Integraciones"];
 
 export default function TemplatesPage() {
   const router = useRouter();
