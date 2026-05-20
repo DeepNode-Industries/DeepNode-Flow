@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, LayoutDashboard, Workflow, Zap, LayoutTemplate,
-  Settings, Plus, LogOut, Info,
+  Settings, Plus, LogOut, Info, Tag,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -16,14 +16,16 @@ const NAV_ITEMS = [
   { href: "/workflows",  icon: Workflow,         label: "Workflows"      },
   { href: "/builder",    icon: Zap,              label: "Builder"        },
   { href: "/templates",  icon: LayoutTemplate,   label: "Templates"      },
+  { href: "/pricing",    icon: Tag,              label: "Precios"        },
   { href: "/settings",   icon: Settings,         label: "Configuración"  },
   { href: "/about",      icon: Info,             label: "Acerca de"      },
 ];
 
 const PLAN_COLORS: Record<string, string> = {
   starter:    "#7c3aed",
-  business:   "#06b6d4",
-  enterprise: "#a855f7",
+  pro:        "#06b6d4",
+  business:   "#a855f7",
+  enterprise: "#f59e0b",
 };
 
 interface MobileNavProps {

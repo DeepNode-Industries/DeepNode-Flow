@@ -4,11 +4,12 @@ import React, { useState, useEffect } from "react";
 import {
   Sparkles, MessageSquare, Mail, Globe, Shield,
   Save, Eye, EyeOff, CheckCircle2, AlertCircle, Zap, Send,
-  User, ChevronRight,
+  User, ChevronRight, CreditCard, ArrowRight, Star,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { getSettings, saveSettings } from "@/lib/storage";
 import { useAuthStore } from "@/store/auth-store";
+import { useRouter } from "next/navigation";
 import type { Settings } from "@/lib/types";
 
 /* ── Field config ───────────────────────────────────────────────── */
@@ -91,6 +92,13 @@ const SECTIONS: SectionDef[] = [
     ],
   },
   {
+    id: "billing",
+    title: "Facturación",
+    icon: CreditCard,
+    color: "#06b6d4",
+    fields: [],
+  },
+  {
     id: "security",
     title: "Seguridad",
     icon: Shield,
@@ -156,6 +164,7 @@ function SectionContent({
   onChange: (k: keyof Settings, v: string) => void;
 }) {
   const session = useAuthStore((s) => s.session);
+  const router  = useRouter();
   const section = SECTIONS.find((s) => s.id === sectionId);
 
   if (sectionId === "general") {
@@ -234,6 +243,114 @@ function SectionContent({
             </div>
           </div>
         )}
+      </div>
+    );
+  }
+
+  if (sectionId === "billing") {
+    const planColors: Record<string, string> = {
+      starter: "#6366f1", pro: "#06b6d4", business: "#a855f7", enterprise: "#f59e0b",
+    };
+    const planColor = planColors[session?.plan ?? "starter"] ?? "#6366f1";
+    const isStarter = session?.plan === "starter";
+
+    const PLAN_PERKS: Record<string, string[]> = {
+      starter:    ["3 workflows", "100 ejecuciones/mes", "Modo Demo"],
+      pro:        ["20 workflows", "5,000 ejecuciones/mes", "Modo Producción", "AI nativa (Grok, GPT, Claude)"],
+      business:   ["Workflows ilimitados", "25,000 ejecuciones/mes", "5 usuarios", "Analytics avanzados"],
+      enterprise: ["Todo ilimitado", "Equipo ilimitado", "SLA 99.99%", "Soporte 24/7"],
+    };
+
+    return (
+      <div className="space-y-5">
+        {/* Current plan card */}
+        <div
+          className="p-5 rounded-2xl"
+          style={{
+            background: `linear-gradient(135deg, ${planColor}12, ${planColor}06)`,
+            border: `1px solid ${planColor}30`,
+          }}
+        >
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div>
+              <p className="text-xs font-medium text-white/40 mb-0.5">Plan actual</p>
+              <p className="text-xl font-black text-white capitalize">
+                {session?.plan ?? "Starter"}
+              </p>
+            </div>
+            <div
+              className="px-3 py-1 rounded-full text-xs font-bold"
+              style={{ background: `${planColor}25`, color: planColor, border: `1px solid ${planColor}30` }}
+            >
+              {isStarter ? "Gratis" : "Activo"}
+            </div>
+          </div>
+          <ul className="space-y-1.5 mb-5">
+            {(PLAN_PERKS[session?.plan ?? "starter"] ?? []).map((perk) => (
+              <li key={perk} className="flex items-center gap-2 text-sm text-white/70">
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" style={{ color: planColor }} />
+                {perk}
+              </li>
+            ))}
+          </ul>
+          {isStarter ? (
+            <button
+              onClick={() => router.push("/pricing")}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
+              style={{ background: `linear-gradient(135deg, #6366f1, #06b6d4)` }}
+            >
+              <Star className="w-4 h-4" />
+              Hacer upgrade a Pro — $29/mes
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push("/pricing")}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all hover:bg-white/10"
+              style={{
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                color: "rgba(255,255,255,0.7)",
+              }}
+            >
+              <CreditCard className="w-4 h-4" />
+              Gestionar suscripción
+            </button>
+          )}
+        </div>
+
+        {/* Billing info */}
+        <div
+          className="p-4 rounded-2xl space-y-3"
+          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          <p className="text-xs font-medium text-white/40">Información de facturación</p>
+          {isStarter ? (
+            <p className="text-sm text-white/50">
+              No tienes un método de pago registrado. Suscríbete a un plan para agregar tu tarjeta.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-white/50">Método de pago</span>
+                <span className="text-white/80 flex items-center gap-1.5">
+                  <CreditCard className="w-3.5 h-3.5" /> •••• 4242
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-white/50">Próxima factura</span>
+                <span className="text-white/80">—</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Trust badges */}
+        <div className="flex flex-wrap gap-3 text-xs text-white/30">
+          <span className="flex items-center gap-1"><Shield className="w-3 h-3 text-emerald-500" /> Pagos cifrados SSL</span>
+          <span className="flex items-center gap-1"><CreditCard className="w-3 h-3 text-blue-400" /> Stripe PCI DSS</span>
+          <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-purple-400" /> Cancela cuando quieras</span>
+        </div>
       </div>
     );
   }

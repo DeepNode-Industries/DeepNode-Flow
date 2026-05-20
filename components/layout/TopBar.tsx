@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, Workflow, Zap, LayoutTemplate, Settings,
-  Plus, LogOut, Menu,
+  Plus, LogOut, Menu, Sparkles, Tag,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 import { MobileNav } from "@/components/ui/MobileNav";
@@ -17,13 +17,22 @@ const NAV_ITEMS = [
   { href: "/workflows",  icon: Workflow,         label: "Workflows"     },
   { href: "/builder",    icon: Zap,              label: "Builder"       },
   { href: "/templates",  icon: LayoutTemplate,   label: "Templates"     },
+  { href: "/pricing",    icon: Tag,              label: "Precios"       },
   { href: "/settings",   icon: Settings,         label: "Configuración" },
 ];
 
 const PLAN_COLORS: Record<string, string> = {
   starter:    "#7c3aed",
-  business:   "#06b6d4",
-  enterprise: "#a855f7",
+  pro:        "#06b6d4",
+  business:   "#a855f7",
+  enterprise: "#f59e0b",
+};
+
+const PLAN_LABELS: Record<string, string> = {
+  starter:    "Starter",
+  pro:        "Pro",
+  business:   "Business",
+  enterprise: "Enterprise",
 };
 
 export function TopBar() {
@@ -39,10 +48,8 @@ export function TopBar() {
   };
 
   const planColor = PLAN_COLORS[session?.plan ?? "starter"] ?? "#7c3aed";
-  const planLabel =
-    session?.plan === "enterprise" ? "Enterprise"
-    : session?.plan === "business" ? "Business"
-    : "Starter";
+  const planLabel = PLAN_LABELS[session?.plan ?? "starter"] ?? "Starter";
+  const isStarter = session?.plan === "starter";
 
   return (
     <>
@@ -103,14 +110,37 @@ export function TopBar() {
           {/* ── Right side actions ────────────────────────────────── */}
           <div className="flex items-center gap-2 ml-auto shrink-0">
 
-            {/* Mode indicator */}
+            {/* Plan badge */}
             <div
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-              style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.2)" }}
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-default"
+              style={{
+                background: `${planColor}18`,
+                border: `1px solid ${planColor}35`,
+                color: planColor,
+              }}
+              title={`Plan ${planLabel}`}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-              <span className="text-amber-300">Demo</span>
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ background: planColor }}
+              />
+              {planLabel}
             </div>
+
+            {/* Upgrade CTA — only for starter */}
+            {isStarter && (
+              <button
+                onClick={() => router.push("/pricing")}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white text-xs font-bold transition-opacity hover:opacity-90"
+                style={{
+                  background: "linear-gradient(135deg, #6366f1, #06b6d4)",
+                  boxShadow: "0 4px 16px rgba(99,102,241,0.25)",
+                }}
+              >
+                <Sparkles className="w-3 h-3" />
+                Upgrade
+              </button>
+            )}
 
             {/* Nuevo Workflow button */}
             <button

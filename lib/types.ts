@@ -109,7 +109,46 @@ export type AIProvider = "openai" | "openrouter" | "grok";
 
 /* ── Auth types ─────────────────────────────────────────────────── */
 
-export type UserPlan = "starter" | "business" | "enterprise";
+export type UserPlan = "starter" | "pro" | "business" | "enterprise";
+
+/* ── Subscription / Billing types ──────────────────────────────── */
+
+export type BillingInterval = "monthly" | "annual";
+
+export interface PlanFeature {
+  label: string;
+  included: boolean;
+  note?: string;
+}
+
+export interface PricingPlan {
+  id: UserPlan;
+  name: string;
+  tagline: string;
+  monthlyPrice: number | null; // null = custom/contact
+  annualPrice: number | null;
+  color: string;
+  accentColor: string;
+  popular?: boolean;
+  stripePriceMonthly?: string; // env var key
+  stripePriceAnnual?: string;
+  limits: {
+    workflows: number | "unlimited";
+    executions: number | "unlimited";
+    teamMembers: number | "unlimited";
+  };
+  features: PlanFeature[];
+}
+
+export interface Subscription {
+  plan: UserPlan;
+  interval: BillingInterval;
+  status: "active" | "trialing" | "past_due" | "canceled" | "none";
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  currentPeriodEnd?: string;
+  cancelAtPeriodEnd?: boolean;
+}
 
 export interface User {
   id: string;
