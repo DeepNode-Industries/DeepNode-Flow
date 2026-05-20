@@ -3,33 +3,50 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
-  Workflow,
-  LayoutTemplate,
-  Settings,
-  Zap,
-  Plus,
-  ChevronRight,
-  Info,
+  LayoutDashboard, Workflow, LayoutTemplate,
+  Settings, Zap, Plus, ChevronRight, Info, LogOut,
 } from "lucide-react";
+import { useAuthStore } from "@/store/auth-store";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/workflows", icon: Workflow, label: "Workflows" },
-  { href: "/builder", icon: Zap, label: "Builder" },
-  { href: "/templates", icon: LayoutTemplate, label: "Templates" },
-  { href: "/settings", icon: Settings, label: "Configuración" },
-  { href: "/about", icon: Info, label: "Acerca de" },
+  { href: "/dashboard",  icon: LayoutDashboard, label: "Dashboard"      },
+  { href: "/workflows",  icon: Workflow,         label: "Workflows"      },
+  { href: "/builder",    icon: Zap,              label: "Builder"        },
+  { href: "/templates",  icon: LayoutTemplate,   label: "Templates"      },
+  { href: "/settings",   icon: Settings,         label: "Configuración"  },
+  { href: "/about",      icon: Info,             label: "Acerca de"      },
 ];
+
+const PLAN_COLORS: Record<string, string> = {
+  starter:    "#7c3aed",
+  business:   "#06b6d4",
+  enterprise: "#a855f7",
+};
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router   = useRouter();
+  const session  = useAuthStore((s) => s.session);
+  const logout   = useAuthStore((s) => s.logout);
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
+  const planColor = PLAN_COLORS[session?.plan ?? "starter"] ?? "#7c3aed";
+  const planLabel = session?.plan === "enterprise"
+    ? "Enterprise"
+    : session?.plan === "business"
+    ? "Business"
+    : "Starter";
 
   return (
     <aside className="w-60 shrink-0 h-screen sticky top-0 flex flex-col border-r border-[#1e1e35] bg-[#0a0a16]">
-      {/* Logo */}
+
+      {/* ── Logo ─────────────────────────────────────────────────── */}
       <div className="px-4 py-4 border-b border-[#1e1e35]">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 group-hover:scale-105 transition-transform shadow-lg shadow-purple-500/20">
@@ -50,7 +67,7 @@ export function Sidebar() {
         </Link>
       </div>
 
-      {/* New workflow CTA */}
+      {/* ── New workflow CTA ─────────────────────────────────────── */}
       <div className="p-3 border-b border-[#1e1e35]">
         <Link
           href="/builder"
@@ -62,10 +79,12 @@ export function Sidebar() {
         </Link>
       </div>
 
-      {/* Navigation */}
+      {/* ── Navigation ───────────────────────────────────────────── */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
-          const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+          const isActive =
+            pathname === href ||
+            (href !== "/dashboard" && pathname.startsWith(href));
           return (
             <Link
               key={href}
@@ -78,7 +97,9 @@ export function Sidebar() {
             >
               <Icon
                 className={`w-4 h-4 shrink-0 transition-colors ${
-                  isActive ? "text-purple-400" : "text-slate-600 group-hover:text-slate-400"
+                  isActive
+                    ? "text-purple-400"
+                    : "text-slate-600 group-hover:text-slate-400"
                 }`}
               />
               {label}
@@ -90,25 +111,46 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Footer with logo */}
-      <div className="p-4 border-t border-[#1e1e35]">
+      {/* ── User footer ──────────────────────────────────────────── */}
+      <div className="p-3 border-t border-[#1e1e35] space-y-1.5">
+        {/* User card */}
         <div className="dn-glass rounded-xl p-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0 shadow-md shadow-purple-500/20">
-              <Image
-                src="/logo.png"
-                alt="DeepNode"
-                width={28}
-                height={28}
-                className="w-full h-full object-cover"
-              />
+            {/* Avatar */}
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold text-white shadow-md"
+              style={{ background: `linear-gradient(135deg, ${planColor}cc, ${planColor}66)` }}
+            >
+              {session?.initials ?? "?"}
             </div>
-            <div>
-              <div className="text-xs font-medium text-slate-300">Demo Account</div>
-              <div className="text-[10px] text-slate-600">Plan Enterprise</div>
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-semibold text-slate-200 truncate leading-tight">
+                {session?.name ?? "Usuario"}
+              </div>
+              <div
+                className="text-[10px] font-medium truncate"
+                style={{ color: planColor }}
+              >
+                Plan {planLabel}
+              </div>
             </div>
           </div>
+          {/* Email */}
+          {session?.email && (
+            <div className="text-[10px] text-slate-600 truncate mt-1.5 pl-[42px]">
+              {session.email}
+            </div>
+          )}
         </div>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-xs text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all group"
+        >
+          <LogOut className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          Cerrar sesión
+        </button>
       </div>
     </aside>
   );

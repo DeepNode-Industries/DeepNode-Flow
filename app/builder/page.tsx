@@ -27,6 +27,7 @@ import { useFlowStore } from "@/store/flow-store";
 import { getWorkflow } from "@/lib/storage";
 import { NODE_DEFINITIONS } from "@/lib/node-definitions";
 import type { WorkflowNode } from "@/lib/types";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 
 function BuilderCanvas() {
   // ── Granular selectors: each picks only what it needs ──────────────────
@@ -307,14 +308,16 @@ function BuilderCanvas() {
 
 export default function BuilderPage() {
   return (
-    <ReactFlowProvider>
-      <Suspense fallback={
-        <div className="min-h-screen bg-[#080810] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-        </div>
-      }>
-        <BuilderCanvas />
-      </Suspense>
-    </ReactFlowProvider>
+    <AuthGuard>
+      <ReactFlowProvider>
+        <Suspense fallback={
+          <div className="min-h-screen bg-[#080810] flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+          </div>
+        }>
+          <BuilderCanvas />
+        </Suspense>
+      </ReactFlowProvider>
+    </AuthGuard>
   );
 }

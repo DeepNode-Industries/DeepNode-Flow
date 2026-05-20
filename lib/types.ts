@@ -107,6 +107,30 @@ export interface Template {
 /** AI provider identifier used across nodes and the unified AI route */
 export type AIProvider = "openai" | "openrouter" | "grok";
 
+/* ── Auth types ─────────────────────────────────────────────────── */
+
+export type UserPlan = "starter" | "business" | "enterprise";
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  /** base64-encoded password — client-side demo only, not for production */
+  passwordHash: string;
+  plan: UserPlan;
+  createdAt: string;
+  initials: string;
+}
+
+export interface AuthSession {
+  userId: string;
+  name: string;
+  email: string;
+  plan: UserPlan;
+  initials: string;
+  loginAt: string;
+}
+
 export interface Settings {
   openaiKey: string;
   openrouterKey: string;
