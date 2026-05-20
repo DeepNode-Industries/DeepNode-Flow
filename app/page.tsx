@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   Zap, ArrowRight, Globe, Clock, Sparkles, GitBranch,
@@ -117,19 +118,18 @@ export default function LandingPage() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#1e1e35]/50 bg-[#080810]/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-cyan-500 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-white" />
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 group-hover:scale-105 transition-transform shadow-lg shadow-purple-500/20">
+              <Image src="/logo.png" alt="DeepNode Industries" width={36} height={36} className="w-full h-full object-cover" />
             </div>
-            <div>
-              <span className="text-sm font-bold text-white font-[family-name:var(--font-space-grotesk)]">DeepNode Flow</span>
-            </div>
-          </div>
+            <span className="text-sm font-bold text-white font-[family-name:var(--font-space-grotesk)]">DeepNode Flow</span>
+          </Link>
           <div className="hidden md:flex items-center gap-6 text-sm text-slate-400">
             <a href="#features" className="hover:text-white transition-colors">Características</a>
             <a href="#use-cases" className="hover:text-white transition-colors">Casos de Uso</a>
             <a href="#integrations" className="hover:text-white transition-colors">Integraciones</a>
             <a href="#pricing" className="hover:text-white transition-colors">Precios</a>
+            <Link href="/about" className="hover:text-white transition-colors">Acerca de</Link>
           </div>
           <div className="flex items-center gap-3">
             <Link

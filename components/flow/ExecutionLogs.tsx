@@ -45,7 +45,11 @@ function StepRow({ step }: { step: ExecutionStep }) {
 }
 
 export function ExecutionLogs() {
-  const { executionLog, isExecuting, showLogs, toggleLogs, clearLogs } = useFlowStore();
+  const executionLog = useFlowStore((s) => s.executionLog);
+  const isExecuting  = useFlowStore((s) => s.isExecuting);
+  const showLogs     = useFlowStore((s) => s.showLogs);
+  const toggleLogs   = useFlowStore((s) => s.toggleLogs);
+  const clearLogs    = useFlowStore((s) => s.clearLogs);
 
   if (!showLogs) return null;
 

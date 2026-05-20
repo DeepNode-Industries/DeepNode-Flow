@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -11,6 +12,7 @@ import {
   Zap,
   Plus,
   ChevronRight,
+  Info,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -19,6 +21,7 @@ const NAV_ITEMS = [
   { href: "/builder", icon: Zap, label: "Builder" },
   { href: "/templates", icon: LayoutTemplate, label: "Templates" },
   { href: "/settings", icon: Settings, label: "Configuración" },
+  { href: "/about", icon: Info, label: "Acerca de" },
 ];
 
 export function Sidebar() {
@@ -27,10 +30,16 @@ export function Sidebar() {
   return (
     <aside className="w-60 shrink-0 h-screen sticky top-0 flex flex-col border-r border-[#1e1e35] bg-[#0a0a16]">
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-[#1e1e35]">
+      <div className="px-4 py-4 border-b border-[#1e1e35]">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-cyan-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <Zap className="w-4 h-4 text-white" />
+          <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 group-hover:scale-105 transition-transform shadow-lg shadow-purple-500/20">
+            <Image
+              src="/logo.png"
+              alt="DeepNode Industries"
+              width={36}
+              height={36}
+              className="w-full h-full object-cover"
+            />
           </div>
           <div>
             <div className="text-sm font-bold text-white font-[family-name:var(--font-space-grotesk)] leading-tight">
@@ -81,12 +90,18 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Footer */}
+      {/* Footer with logo */}
       <div className="p-4 border-t border-[#1e1e35]">
         <div className="dn-glass rounded-xl p-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600/30 to-cyan-500/30 border border-purple-500/20 flex items-center justify-center shrink-0">
-              <span className="text-[10px] font-bold text-purple-300">DN</span>
+            <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0 shadow-md shadow-purple-500/20">
+              <Image
+                src="/logo.png"
+                alt="DeepNode"
+                width={28}
+                height={28}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <div className="text-xs font-medium text-slate-300">Demo Account</div>

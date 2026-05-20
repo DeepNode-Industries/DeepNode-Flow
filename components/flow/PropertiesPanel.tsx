@@ -57,8 +57,11 @@ function FieldInput({
 }
 
 export function PropertiesPanel() {
-  const { selectedNodeId, rfNodes, updateNodeConfig, removeNode, selectNode } =
-    useFlowStore();
+  const selectedNodeId  = useFlowStore((s) => s.selectedNodeId);
+  const rfNodes         = useFlowStore((s) => s.rfNodes);
+  const updateNodeConfig = useFlowStore((s) => s.updateNodeConfig);
+  const removeNode      = useFlowStore((s) => s.removeNode);
+  const selectNode      = useFlowStore((s) => s.selectNode);
 
   const selectedNode = rfNodes.find((n) => n.id === selectedNodeId);
 
