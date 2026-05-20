@@ -217,10 +217,14 @@ export default function PricingPage() {
             return (
               <motion.div
                 key={plan.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
-                className="relative flex flex-col rounded-2xl overflow-hidden"
+                initial={{ opacity: 0, y: 40, filter: "blur(6px)" }}
+                whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ delay: i * 0.09, duration: 0.55, ease: "easeOut" }}
+                whileHover={plan.popular
+                  ? { scale: 1.02, y: -4 }
+                  : { scale: 1.015, y: -2 }}
+                className="relative flex flex-col rounded-2xl overflow-hidden cursor-default"
                 style={{
                   background: plan.popular
                     ? `linear-gradient(160deg, rgba(6,182,212,0.12), rgba(59,130,246,0.08))`
