@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import {
   Sparkles, MessageSquare, Mail, Globe, Database, Shield,
-  Save, Eye, EyeOff, CheckCircle2, AlertCircle, Zap,
+  Save, Eye, EyeOff, CheckCircle2, AlertCircle, Zap, Send,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { getSettings, saveSettings } from "@/lib/storage";
@@ -33,6 +33,27 @@ const SECTIONS: {
       { key: "openaiKey", label: "OpenAI API Key", placeholder: "sk-...", type: "password", hint: "Requerido para nodos de IA con modelos GPT" },
       { key: "openrouterKey", label: "OpenRouter API Key", placeholder: "sk-or-...", type: "password", hint: "Alternativa a OpenAI con acceso a múltiples modelos" },
       { key: "xaiKey", label: "xAI API Key (Grok)", placeholder: "xai-xxxx", type: "password", hint: "Para nodos Grok Chat (grok-3-mini free). Obtén en console.x.ai" },
+    ],
+  },
+  {
+    id: "telegram",
+    title: "Telegram Bot",
+    icon: Send,
+    color: "#229ED9",
+    fields: [
+      {
+        key: "telegramToken",
+        label: "Bot Token",
+        placeholder: "123456789:ABCdefGHIjklMNOpqrSTUvwxYZ",
+        type: "password",
+        hint: "Obtén tu token en @BotFather → /newbot. Formato: 123456789:ABCdef...",
+      },
+      {
+        key: "telegramChatId",
+        label: "Chat ID por defecto",
+        placeholder: "@mi_canal o 123456789",
+        hint: "Envía /start a tu bot y mira el Chat ID. También puede ser @nombre_canal.",
+      },
     ],
   },
   {
@@ -109,6 +130,8 @@ export default function SettingsPage() {
     openaiKey: "",
     openrouterKey: "",
     xaiKey: "",
+    telegramToken: "",
+    telegramChatId: "",
     whatsappToken: "",
     whatsappPhoneId: "",
     smtpHost: "",

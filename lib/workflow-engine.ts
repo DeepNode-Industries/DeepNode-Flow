@@ -1,7 +1,7 @@
 import type { Workflow, ExecutionLog, ExecutionStep, NodeStatus, NodeConfig } from "./types";
 import { saveExecutionLog, saveWorkflow, getWorkflow, getSettings } from "./storage";
 
-// ─── Grok simulation helper ────────────────────────────────────────────────
+// ─── Shared result type ───────────────────────────────────────────────────
 
 interface NodeExecutionResult {
   success: boolean;
@@ -18,6 +18,46 @@ function simulateGrokChat(prompt: string): NodeExecutionResult {
       tokens: 64,
     },
     log: "[Grok AI Demo] Respuesta simulada (64 tokens)",
+  };
+}
+
+// ─── Telegram executor (production) ──────────────────────────────────────
+
+async function executeTelegramNode(config: NodeConfig): Promise<NodeExecutionResult> {
+  const chatId       = String(config.chatId ?? "");
+  const message      = String(config.message ?? "Mensaje desde DeepNode Flow");
+  const parseMode    = String(config.parseMode ?? "HTML");
+  const disablePreview = config.disablePreview === "true";
+
+  if (!chatId) {
+    return {
+      success: false,
+      output: { error: "Chat ID no configurado" },
+      log: "[Telegram] Error: Chat ID requerido",
+    };
+  }
+
+  const res = await fetch("/api/send-telegram", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chatId, message, parseMode, disablePreview }),
+  });
+
+  interface TelegramResult { ok?: boolean; messageId?: number; error?: string }
+  const data = (await res.json()) as TelegramResult;
+
+  if (!res.ok || !data.ok) {
+    return {
+      success: false,
+      output: { error: data.error },
+      log: `[Telegram] Error: ${data.error ?? "Fallo al enviar"}`,
+    };
+  }
+
+  return {
+    success: true,
+    output: { messageId: data.messageId, chatId },
+    log: `[Telegram] ✓ Mensaje enviado al chat ${chatId} (ID: ${data.messageId})`,
   };
 }
 
@@ -135,6 +175,36 @@ async function simulateNode(
   const settings = getSettings();
   const isProduction = settings.mode === "production";
 
+  // send-telegram: real call in production, simulation otherwise
+  if (nodeType === "send-telegram") {
+    let result: NodeExecutionResult;
+    if (isProduction) {
+      try {
+        result = await executeTelegramNode(nodeConfig);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Error desconocido";
+        result = { success: false, output: { error: msg }, log: `[Telegram] Error: ${msg}` };
+      }
+    } else {
+      const chatId = String(nodeConfig.chatId ?? "@mi_canal");
+      result = {
+        success: true,
+        output: { messageId: Math.floor(Math.random() * 9000) + 1000, chatId },
+        log: `[Telegram Demo] ✓ Mensaje simulado enviado a ${chatId}`,
+      };
+    }
+    const step: ExecutionStep = {
+      nodeId,
+      nodeLabel,
+      status: result.success ? "success" : "error",
+      message: result.log,
+      timestamp: nowISO(),
+      output: result.success ? result.output : undefined,
+    };
+    onStep(step);
+    return step;
+  }
+
   // grok-chat: real call in production, simulation otherwise
   if (nodeType === "grok-chat") {
     let result: NodeExecutionResult;
@@ -199,6 +269,11 @@ function buildSimulatedStep(nodeId: string, nodeType: string, nodeLabel: string)
     "http-request": ["HTTP 200 OK — Respuesta recibida de API externa", "API respondió en 340ms con datos"],
     "send-email": ["Email enviado a cliente@empresa.com", "Correo entregado correctamente"],
     "send-whatsapp": ["Mensaje WhatsApp enviado (+52 55 XXXX XXXX)", "WhatsApp entregado exitosamente"],
+    "send-telegram": [
+      "[Telegram Demo] ✓ Mensaje enviado al chat @mi_canal (ID: 4821)",
+      "[Telegram Demo] ✓ Mensaje entregado en 0.3s",
+      "[Telegram Demo] ✓ Bot envió notificación al grupo",
+    ],
     "save-to-crm": ["Lead guardado en HubSpot (ID: hs_29847)", "Contacto creado/actualizado en CRM"],
     "save-to-sheets": ["Fila agregada a Google Sheets (row 142)", "Datos guardados en spreadsheet"],
     "database-query": ["Consulta ejecutada — 23 registros recuperados", "Query completada en 45ms"],

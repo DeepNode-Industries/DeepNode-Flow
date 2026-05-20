@@ -323,6 +323,55 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
       { key: "body", label: "Mensaje", type: "textarea", placeholder: "Tienes un nuevo lead..." },
     ],
   },
+  {
+    type: "send-telegram",
+    category: "action",
+    label: "Send Telegram",
+    description: "Envía mensaje via Telegram Bot API",
+    icon: "Send",
+    color: "#229ED9",
+    accentColor: "#39C5EE",
+    defaultConfig: {
+      chatId: "",
+      message: "Hola {{nombre}}, tu flujo se ejecutó exitosamente. 🚀",
+      parseMode: "HTML",
+      disablePreview: "false",
+    },
+    configFields: [
+      {
+        key: "chatId",
+        label: "Chat ID / Channel",
+        type: "text",
+        placeholder: "@mi_canal o 123456789",
+        required: true,
+      },
+      {
+        key: "message",
+        label: "Mensaje",
+        type: "textarea",
+        placeholder: "Escribe tu mensaje aquí...\nPuedes usar <b>HTML</b> o *Markdown*",
+      },
+      {
+        key: "parseMode",
+        label: "Formato de texto",
+        type: "select",
+        options: [
+          { label: "HTML (<b>negrita</b>, <i>cursiva</i>)", value: "HTML" },
+          { label: "Markdown (*negrita*, _cursiva_)",       value: "Markdown" },
+          { label: "Sin formato",                          value: "None" },
+        ],
+      },
+      {
+        key: "disablePreview",
+        label: "Deshabilitar preview de links",
+        type: "select",
+        options: [
+          { label: "No (mostrar preview)", value: "false" },
+          { label: "Sí (sin preview)",     value: "true" },
+        ],
+      },
+    ],
+  },
   // LOGIC
   {
     type: "if-condition",

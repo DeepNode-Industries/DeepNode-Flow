@@ -5,7 +5,7 @@ import { Search, ChevronDown, ChevronRight } from "lucide-react";
 import {
   Play, Globe, Clock, FileText,
   Sparkles, Tags, AlignLeft, Braces, Bot,
-  Zap, Mail, MessageSquare, Users, Table, Database, Bell,
+  Zap, Mail, MessageSquare, Users, Table, Database, Bell, Send,
   GitBranch, Timer, RefreshCw, Shuffle,
 } from "lucide-react";
 import { NODE_DEFINITIONS, CATEGORY_LABELS } from "@/lib/node-definitions";
@@ -15,7 +15,7 @@ import { useFlowStore } from "@/store/flow-store";
 const ICON_MAP: Record<string, React.ElementType> = {
   Play, Globe, Clock, FileText,
   Sparkles, Tags, AlignLeft, Braces, Bot,
-  Zap, Mail, MessageSquare, Users, Table, Database, Bell,
+  Zap, Mail, MessageSquare, Users, Table, Database, Bell, Send,
   GitBranch, Timer, RefreshCw, Shuffle,
 };
 

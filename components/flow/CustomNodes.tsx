@@ -5,7 +5,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import {
   Play, Globe, Clock, FileText,
   Sparkles, Tags, AlignLeft, Braces, Bot,
-  Zap, Mail, MessageSquare, Users, Table, Database, Bell,
+  Zap, Mail, MessageSquare, Users, Table, Database, Bell, Send,
   GitBranch, Timer, RefreshCw, Shuffle,
   CheckCircle2, XCircle, Loader2, Circle,
 } from "lucide-react";
@@ -14,7 +14,7 @@ import type { NodeStatus } from "@/lib/types";
 const ICON_MAP: Record<string, React.ElementType> = {
   Play, Globe, Clock, FileText,
   Sparkles, Tags, AlignLeft, Braces, Bot,
-  Zap, Mail, MessageSquare, Users, Table, Database, Bell,
+  Zap, Mail, MessageSquare, Users, Table, Database, Bell, Send,
   GitBranch, Timer, RefreshCw, Shuffle,
 };
 
@@ -155,6 +155,7 @@ export const NODE_TYPES = {
   "save-to-sheets": memo(BaseNode),
   "database-query": memo(BaseNode),
   "notification": memo(BaseNode),
+  "send-telegram": memo(BaseNode),
   // Logic
   "if-condition": memo(BaseNode),
   "delay": memo(BaseNode),

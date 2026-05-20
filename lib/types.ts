@@ -136,6 +136,10 @@ export interface Settings {
   openrouterKey: string;
   /** xAI API key — used for Grok models (grok-3-mini, grok-3, grok-2-vision-1212) */
   xaiKey: string;
+  /** Telegram Bot Token — from @BotFather (format: 123456789:ABCdef...) */
+  telegramToken: string;
+  /** Default Telegram Chat ID for nodes that don't specify one */
+  telegramChatId: string;
   whatsappToken: string;
   whatsappPhoneId: string;
   smtpHost: string;

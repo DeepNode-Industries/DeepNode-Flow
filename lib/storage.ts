@@ -210,6 +210,8 @@ const DEFAULT_SETTINGS: Settings = {
   openaiKey: "",
   openrouterKey: "",
   xaiKey: "",
+  telegramToken: "",
+  telegramChatId: "",
   whatsappToken: "",
   whatsappPhoneId: "",
   smtpHost: "",
