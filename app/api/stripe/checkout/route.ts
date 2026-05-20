@@ -5,7 +5,7 @@
  * Body: { plan: "pro" | "business", interval: "monthly" | "annual", email?: string }
  */
 import { NextRequest, NextResponse } from "next/server";
-import { stripe, getStripePriceId } from "@/lib/stripe";
+import { getStripe, getStripePriceId, StripeNotConfiguredError } from "@/lib/stripe";
 
 interface CheckoutBody {
   plan: "pro" | "business";
@@ -14,13 +14,6 @@ interface CheckoutBody {
 }
 
 export async function POST(req: NextRequest) {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    return NextResponse.json(
-      { error: "Stripe no configurado. Agrega STRIPE_SECRET_KEY en .env.local" },
-      { status: 501 }
-    );
-  }
-
   let body: CheckoutBody;
   try {
     body = (await req.json()) as CheckoutBody;
@@ -38,15 +31,17 @@ export async function POST(req: NextRequest) {
   if (!priceId) {
     return NextResponse.json(
       {
-        error: `Price ID no configurado para ${plan}/${interval}. Agrega las variables STRIPE_*_PRICE_ID en .env.local`,
+        error: `Price ID no configurado para ${plan}/${interval}. Agrega STRIPE_${plan.toUpperCase()}_${interval.toUpperCase()}_PRICE_ID en las variables de entorno.`,
       },
       { status: 501 }
     );
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://deepnode-flow.vercel.app";
 
   try {
+    const stripe = getStripe();
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
@@ -56,17 +51,16 @@ export async function POST(req: NextRequest) {
       cancel_url: `${baseUrl}/pricing?payment=canceled`,
       allow_promotion_codes: true,
       subscription_data: {
-        metadata: {
-          plan,
-          interval,
-          source: "deepnode-flow",
-        },
+        metadata: { plan, interval, source: "deepnode-flow" },
       },
       metadata: { plan, interval },
     });
 
     return NextResponse.json({ url: session.url, sessionId: session.id });
   } catch (err) {
+    if (err instanceof StripeNotConfiguredError) {
+      return NextResponse.json({ error: err.message }, { status: 501 });
+    }
     const message = err instanceof Error ? err.message : "Error desconocido";
     return NextResponse.json({ error: `Stripe error: ${message}` }, { status: 500 });
   }
