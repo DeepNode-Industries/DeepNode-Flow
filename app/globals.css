@@ -22,8 +22,10 @@
   --color-dn-amber: #f59e0b;
   --color-dn-red: #ef4444;
 
-  --font-heading: var(--font-space-grotesk);
-  --font-body: var(--font-inter);
+  /* Typography — DeepNode brand fonts */
+  --font-heading: var(--font-onest);
+  --font-body: var(--font-jakarta);
+  --font-mono: var(--font-mono);
 }
 
 :root {
@@ -42,13 +44,26 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter, 'Inter', system-ui, sans-serif);
+  font-family: var(--font-jakarta, 'Plus Jakarta Sans', system-ui, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "rlig" 1, "calt" 1;
+  letter-spacing: -0.01em;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-space-grotesk, 'Space Grotesk', system-ui, sans-serif);
+  font-family: var(--font-onest, 'Onest', system-ui, sans-serif);
+  letter-spacing: -0.03em;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Monospaced — logs, code, API keys, execution output */
+code, kbd, pre, .font-mono,
+.react-flow__node-code,
+[data-mono] {
+  font-family: var(--font-mono, 'JetBrains Mono', 'Fira Code', monospace);
+  font-feature-settings: "liga" 1, "calt" 1;
+  font-variant-ligatures: common-ligatures;
 }
 
 /* DeepNode glass card utility */

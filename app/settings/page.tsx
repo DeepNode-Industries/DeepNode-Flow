@@ -128,8 +128,9 @@ function MaskInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 pr-10 rounded-xl text-sm text-white placeholder:text-white/25 focus:outline-none transition-colors font-mono"
+        className="w-full px-3 py-2 pr-10 rounded-xl text-sm text-white placeholder:text-white/25 focus:outline-none transition-colors"
         style={{
+          fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
           background: "rgba(255,255,255,0.04)",
           border: "1px solid rgba(255,255,255,0.08)",
         }}
