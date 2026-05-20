@@ -2,6 +2,7 @@ import React from "react";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { TopBar } from "@/components/layout/TopBar";
 import { Footer } from "@/components/layout/Footer";
+import { UpgradeBanner } from "@/components/ui/UpgradeBanner";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -23,6 +24,7 @@ export function DashboardLayout({ children, noPadding }: DashboardLayoutProps) {
           {children}
         </main>
         <Footer />
+        <UpgradeBanner />
       </div>
     </AuthGuard>
   );

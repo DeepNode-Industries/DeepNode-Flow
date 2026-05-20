@@ -1,4 +1,4 @@
-import type { Workflow, ExecutionLog, Settings, User, AuthSession, UserPlan } from "./types";
+import type { Workflow, ExecutionLog, Settings, User, AuthSession, UserPlan, Subscription } from "./types";
 import { MOCK_WORKFLOWS, MOCK_EXECUTION_LOGS } from "./mock-data";
 
 const KEYS = {
@@ -7,6 +7,7 @@ const KEYS = {
   SETTINGS: "dn_settings",
   USERS: "dn_users",
   SESSION: "dn_session",
+  SUBSCRIPTION: "dn_subscription",
 };
 
 /* ── helpers ──────────────────────────────────────────────────────── */
@@ -228,4 +229,25 @@ export function getSettings(): Settings {
 
 export function saveSettings(settings: Settings): void {
   safeSet(KEYS.SETTINGS, settings);
+}
+
+/* ── Subscription ─────────────────────────────────────────────────── */
+
+const DEFAULT_SUBSCRIPTION: Subscription = {
+  plan: "starter",
+  interval: "monthly",
+  status: "none",
+};
+
+export function getSubscription(): Subscription {
+  return safeGet<Subscription>(KEYS.SUBSCRIPTION, DEFAULT_SUBSCRIPTION);
+}
+
+export function saveSubscription(sub: Subscription): void {
+  safeSet(KEYS.SUBSCRIPTION, sub);
+}
+
+export function clearSubscription(): void {
+  if (!isBrowser()) return;
+  localStorage.removeItem(KEYS.SUBSCRIPTION);
 }

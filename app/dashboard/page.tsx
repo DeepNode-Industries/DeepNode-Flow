@@ -1,18 +1,20 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Workflow, Play, TrendingUp, Clock, Plus, ArrowRight,
   Activity, CheckCircle2, XCircle, Zap, Globe, Settings,
-  LayoutTemplate,
+  LayoutTemplate, Sparkles,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { StatusBadge } from "@/components/ui/Badge";
 import { useFlowStore } from "@/store/flow-store";
-import { getExecutionLogs } from "@/lib/storage";
+import { getExecutionLogs, saveSubscription } from "@/lib/storage";
 import { useAuthStore } from "@/store/auth-store";
-import type { ExecutionLog } from "@/lib/types";
+import type { ExecutionLog, UserPlan } from "@/lib/types";
 
 /* ── Decorative sparkline ───────────────────────────────────────── */
 function Sparkline({ color }: { color: string }) {
@@ -86,6 +88,64 @@ function ActivityIcon({ status }: { status: ExecutionLog["status"] }) {
   return <Activity className="w-4 h-4 text-blue-400 animate-pulse" />;
 }
 
+/* ── Payment success toast ──────────────────────────────────────── */
+function PaymentSuccessToast() {
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+  const [show, setShow] = React.useState(false);
+  const [plan, setPlan] = React.useState("");
+
+  useEffect(() => {
+    const payment = searchParams.get("payment");
+    const planParam = searchParams.get("plan") ?? "pro";
+    if (payment === "success") {
+      setShow(true);
+      setPlan(planParam);
+      // Persist subscription in localStorage
+      saveSubscription({
+        plan: planParam as UserPlan,
+        interval: "monthly",
+        status: "active",
+      });
+      // Clean URL
+      router.replace("/dashboard");
+      setTimeout(() => setShow(false), 6000);
+    }
+  }, [searchParams, router]);
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0, y: -60, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -40, scale: 0.95 }}
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 w-full max-w-sm"
+        >
+          <div
+            className="flex items-center gap-3 px-4 py-3.5 rounded-2xl"
+            style={{
+              background: "linear-gradient(135deg, rgba(16,185,129,0.95), rgba(6,182,212,0.9))",
+              border: "1px solid rgba(255,255,255,0.2)",
+              boxShadow: "0 16px 48px rgba(16,185,129,0.3)",
+            }}
+          >
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white">¡Suscripción activada!</p>
+              <p className="text-xs text-white/80">
+                Bienvenido al plan <span className="font-bold capitalize">{plan}</span> 🎉
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 /* ── Page ───────────────────────────────────────────────────────── */
 export default function DashboardPage() {
   const workflows    = useFlowStore((s) => s.workflows);
@@ -110,6 +170,11 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
+      {/* ── Payment success toast ──────────────────────────────────── */}
+      <Suspense>
+        <PaymentSuccessToast />
+      </Suspense>
+
       {/* ── Header strip ────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
