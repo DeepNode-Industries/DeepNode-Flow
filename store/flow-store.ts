@@ -39,8 +39,8 @@ function toRFEdge(e: WorkflowEdge): Edge {
     target: e.target,
     sourceHandle: e.sourceHandle ?? null,
     targetHandle: e.targetHandle ?? null,
-    animated: true,
-    style: { stroke: "#7c3aed", strokeWidth: 2 },
+    animated: false,
+    style: { stroke: "#5b50e8", strokeWidth: 2 },
   };
 }
 
@@ -155,7 +155,7 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   onConnect: (connection) => {
     set((state) => ({
       rfEdges: addEdge(
-        { ...connection, animated: true, style: { stroke: "#7c3aed", strokeWidth: 2 } },
+        { ...connection, animated: false, style: { stroke: "#5b50e8", strokeWidth: 2 } },
         state.rfEdges
       ),
     }));

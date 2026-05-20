@@ -4,379 +4,341 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  Eye, EyeOff, Loader2, Mail, Lock, User, Zap,
-  AlertCircle, ArrowRight, CheckCircle2, Building2,
-} from "lucide-react";
+import { Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/store/auth-store";
 import type { UserPlan } from "@/lib/types";
 
-/* ── Password strength ───────────────────────────────────────────── */
+/* ── Password strength ──────────────────────────────────────────── */
 function getStrength(pw: string): { score: number; label: string; color: string } {
   let score = 0;
   if (pw.length >= 8) score++;
   if (/[A-Z]/.test(pw)) score++;
   if (/[0-9]/.test(pw)) score++;
   if (/[^A-Za-z0-9]/.test(pw)) score++;
-
-  if (score <= 1) return { score, label: "Débil", color: "#ef4444" };
-  if (score === 2) return { score, label: "Regular", color: "#f59e0b" };
-  if (score === 3) return { score, label: "Buena", color: "#10b981" };
-  return { score, label: "Excelente", color: "#06b6d4" };
+  if (score <= 1) return { score, label: "Débil",     color: "#ef4444" };
+  if (score === 2) return { score, label: "Regular",   color: "#f59e0b" };
+  if (score === 3) return { score, label: "Buena",     color: "#10b981" };
+  return             { score, label: "Excelente", color: "#4f46e5" };
 }
 
-const PLANS: { id: UserPlan; name: string; desc: string; color: string }[] = [
-  { id: "starter",    name: "Starter",    desc: "5 workflows · 1K ejecuciones",    color: "#7c3aed" },
-  { id: "business",   name: "Business",   desc: "Ilimitados · 50K ejecuciones",    color: "#06b6d4" },
-  { id: "enterprise", name: "Enterprise", desc: "Todo ilimitado · SLA 99.9%",      color: "#a855f7" },
-];
-
-function Orb({ className, color }: { className: string; color: string }) {
-  return (
-    <div
-      className={`absolute rounded-full blur-3xl pointer-events-none ${className}`}
-      style={{ background: color }}
-    />
-  );
-}
+/* ── Input style helpers ────────────────────────────────────────── */
+const inputBase: React.CSSProperties = {
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.10)",
+};
+const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+  e.currentTarget.style.borderColor  = "rgba(124,58,237,0.6)";
+  e.currentTarget.style.boxShadow    = "0 0 0 3px rgba(124,58,237,0.12)";
+};
+const onBlur  = (e: React.FocusEvent<HTMLInputElement>) => {
+  e.currentTarget.style.borderColor  = "rgba(255,255,255,0.10)";
+  e.currentTarget.style.boxShadow    = "none";
+};
 
 export default function RegisterPage() {
-  const router   = useRouter();
-  const register = useAuthStore((s) => s.register);
-  const session  = useAuthStore((s) => s.session);
+  const router    = useRouter();
+  const register  = useAuthStore((s) => s.register);
+  const session   = useAuthStore((s) => s.session);
   const hydrating = useAuthStore((s) => s.hydrating);
-  const hydrate  = useAuthStore((s) => s.hydrate);
+  const hydrate   = useAuthStore((s) => s.hydrate);
 
-  const [name,      setName]      = useState("");
-  const [email,     setEmail]     = useState("");
-  const [password,  setPassword]  = useState("");
-  const [confirm,   setConfirm]   = useState("");
-  const [plan,      setPlan]      = useState<UserPlan>("starter");
-  const [showPass,  setShowPass]  = useState(false);
-  const [showConf,  setShowConf]  = useState(false);
-  const [loading,   setLoading]   = useState(false);
-  const [error,     setError]     = useState("");
+  const [name,     setName]     = useState("");
+  const [email,    setEmail]    = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm,  setConfirm]  = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [showConf, setShowConf] = useState(false);
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState("");
 
   useEffect(() => { hydrate(); }, [hydrate]);
   useEffect(() => {
     if (!hydrating && session) router.replace("/dashboard");
   }, [hydrating, session, router]);
 
-  const strength = getStrength(password);
-  const passwordMatch = password.length > 0 && confirm.length > 0 && password === confirm;
-  const passwordMismatch = confirm.length > 0 && password !== confirm;
+  const strength       = getStrength(password);
+  const passwordMatch  = password.length > 0 && confirm.length > 0 && password === confirm;
+  const passwordBad    = confirm.length > 0 && password !== confirm;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    if (!name.trim()) { setError("El nombre es requerido."); return; }
-    if (!email.trim()) { setError("El email es requerido."); return; }
-    if (password.length < 6) { setError("La contraseña debe tener al menos 6 caracteres."); return; }
-    if (password !== confirm) { setError("Las contraseñas no coinciden."); return; }
-
+    if (!name.trim())          { setError("El nombre es requerido."); return; }
+    if (!email.trim())         { setError("El email es requerido."); return; }
+    if (password.length < 6)   { setError("La contraseña debe tener al menos 6 caracteres."); return; }
+    if (password !== confirm)  { setError("Las contraseñas no coinciden."); return; }
     setLoading(true);
     await new Promise((r) => setTimeout(r, 700));
-
-    const result = register(name, email, password, plan);
+    const result = register(name, email, password, "starter" as UserPlan);
     setLoading(false);
-
-    if (!result.ok) {
-      setError(result.error);
-    } else {
-      router.push("/dashboard");
-    }
+    if (!result.ok) { setError(result.error); } else { router.push("/dashboard"); }
   };
 
   return (
-    <div className="min-h-screen bg-[#080810] flex flex-col overflow-hidden">
-      {/* Orbs */}
-      <div className="absolute inset-0 dn-grid-bg opacity-20 pointer-events-none" />
-      <Orb className="w-[500px] h-[500px] -top-32 -right-32 opacity-[0.06]" color="#a855f7" />
-      <Orb className="w-[400px] h-[400px] -bottom-32 -left-32 opacity-[0.05]" color="#06b6d4" />
-
-      {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-8 py-5">
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-8 h-8 rounded-xl overflow-hidden shadow-lg shadow-purple-500/30 group-hover:scale-105 transition-transform">
-            <Image src="/logo.png" alt="DeepNode" width={32} height={32} className="w-full h-full object-cover" />
+    <div
+      className="min-h-screen flex flex-col"
+      style={{
+        background: "radial-gradient(ellipse 120% 80% at 50% -20%, rgba(140,40,80,0.18) 0%, transparent 55%), #0e0810",
+      }}
+    >
+      {/* ── Top bar ───────────────────────────────────────────────── */}
+      <header className="flex items-center justify-between px-8 py-5 shrink-0">
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-7 h-7 rounded-lg overflow-hidden opacity-90 group-hover:opacity-100 transition-opacity">
+            <Image src="/logo.png" alt="DeepNode" width={28} height={28} className="w-full h-full object-cover" />
           </div>
-          <span className="text-sm font-bold text-slate-300 font-[family-name:var(--font-space-grotesk)] group-hover:text-white transition-colors">
+          <span className="text-sm font-semibold text-white/80 group-hover:text-white transition-colors">
             DeepNode Flow
           </span>
         </Link>
         <Link
           href="/login"
-          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-purple-400 transition-colors"
+          className="text-sm text-white/40 hover:text-white/80 transition-colors"
         >
-          ¿Ya tienes cuenta? <span className="text-purple-400 font-medium">Inicia sesión</span>
-          <ArrowRight className="w-3.5 h-3.5 text-purple-400" />
+          ¿Ya tienes cuenta?{" "}
+          <span className="text-white/70 font-medium hover:text-white transition-colors">
+            Inicia sesión
+          </span>
         </Link>
       </header>
 
-      {/* Main */}
-      <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-6">
-        <div className="w-full max-w-lg">
-
+      {/* ── Main ──────────────────────────────────────────────────── */}
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+        <motion.div
+          className="w-full max-w-[420px]"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+        >
           {/* Title */}
-          <div className="text-center mb-7">
-            <div className="flex justify-center mb-5">
-              <div className="relative">
-                <div className="absolute inset-0 bg-cyan-500/20 blur-2xl rounded-full scale-150 animate-pulse" />
-                <div className="relative w-20 h-20 rounded-3xl overflow-hidden shadow-2xl shadow-cyan-500/30 border border-white/5">
-                  <Image
-                    src="/logo.png"
-                    alt="DeepNode Industries"
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-cover"
-                    priority
-                  />
-                </div>
-              </div>
-            </div>
-            <h1 className="text-2xl font-bold text-white font-[family-name:var(--font-space-grotesk)] mb-1">
-              Crear cuenta en{" "}
-              <span className="dn-gradient-text">DeepNode Flow</span>
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Comienza a automatizar hoy
             </h1>
-            <p className="text-sm text-slate-500">
-              Automatiza tu empresa con IA en minutos
+            <p className="text-sm text-white/40">
+              Crea tu cuenta gratis · Sin tarjeta de crédito
             </p>
           </div>
 
           {/* Card */}
-          <div className="dn-glass-bright rounded-3xl border border-[#1e1e35] shadow-2xl shadow-black/40 overflow-hidden">
-            <div className="h-px w-full bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
-
-            <div className="p-7 space-y-5">
+          <div
+            className="rounded-xl overflow-hidden"
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.09)",
+            }}
+          >
+            <div className="p-7 space-y-4">
 
               {/* Error */}
-              {error && (
-                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
-                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-                  <p className="text-xs text-red-300 leading-relaxed">{error}</p>
-                </div>
-              )}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="px-4 py-3 rounded-lg text-sm text-red-300"
+                    style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}
+                  >
+                    {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <form onSubmit={handleSubmit} className="space-y-4">
 
-                {/* Name */}
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                {/* Full name */}
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-white/60">
                     Nombre completo
                   </label>
-                  <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => { setName(e.target.value); setError(""); }}
-                      placeholder="Juan García"
-                      autoComplete="name"
-                      className="w-full pl-10 pr-4 py-2.5 bg-[#0e0e1c] border border-[#1e1e35] rounded-xl text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/20 transition-all"
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => { setName(e.target.value); setError(""); }}
+                    placeholder="Juan García"
+                    autoComplete="name"
+                    className="w-full px-4 py-3 rounded-lg text-sm text-white placeholder:text-white/20 outline-none transition-all"
+                    style={inputBase}
+                    onFocus={onFocus}
+                    onBlur={onBlur}
+                  />
                 </div>
 
                 {/* Email */}
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                    Email corporativo
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-white/60">
+                    Email de empresa
                   </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => { setEmail(e.target.value); setError(""); }}
-                      placeholder="juan@empresa.com"
-                      autoComplete="email"
-                      className="w-full pl-10 pr-4 py-2.5 bg-[#0e0e1c] border border-[#1e1e35] rounded-xl text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/20 transition-all"
-                    />
-                  </div>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => { setEmail(e.target.value); setError(""); }}
+                    placeholder="juan@empresa.com"
+                    autoComplete="email"
+                    className="w-full px-4 py-3 rounded-lg text-sm text-white placeholder:text-white/20 outline-none transition-all"
+                    style={inputBase}
+                    onFocus={onFocus}
+                    onBlur={onBlur}
+                  />
                 </div>
 
-                {/* Passwords row */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                      Contraseña
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-                      <input
-                        type={showPass ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => { setPassword(e.target.value); setError(""); }}
-                        placeholder="••••••••"
-                        autoComplete="new-password"
-                        className="w-full pl-10 pr-10 py-2.5 bg-[#0e0e1c] border border-[#1e1e35] rounded-xl text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-purple-500/60 focus:ring-1 focus:ring-purple-500/20 transition-all"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPass(!showPass)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-colors"
-                      >
-                        {showPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
-                    {/* Strength bar */}
-                    {password.length > 0 && (
-                      <div className="mt-1.5">
-                        <div className="flex gap-1 mb-1">
-                          {[1, 2, 3, 4].map((i) => (
-                            <div
-                              key={i}
-                              className="h-1 flex-1 rounded-full transition-all"
-                              style={{
-                                background: i <= strength.score ? strength.color : "#1e1e35",
-                              }}
-                            />
-                          ))}
-                        </div>
-                        <p className="text-[10px]" style={{ color: strength.color }}>
-                          {strength.label}
-                        </p>
-                      </div>
-                    )}
+                {/* Password */}
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-white/60">
+                    Contraseña
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPass ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                      placeholder="Mínimo 6 caracteres"
+                      autoComplete="new-password"
+                      className="w-full px-4 py-3 pr-11 rounded-lg text-sm text-white placeholder:text-white/20 outline-none transition-all"
+                      style={inputBase}
+                      onFocus={onFocus}
+                      onBlur={onBlur}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(!showPass)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/60 transition-colors"
+                    >
+                      {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
+                  {/* Strength */}
+                  {password.length > 0 && (
+                    <div>
+                      <div className="flex gap-1 mb-1">
+                        {[1, 2, 3, 4].map((i) => (
+                          <div
+                            key={i}
+                            className="h-1 flex-1 rounded-full transition-all duration-300"
+                            style={{ background: i <= strength.score ? strength.color : "rgba(255,255,255,0.08)" }}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-[11px]" style={{ color: strength.color }}>{strength.label}</p>
+                    </div>
+                  )}
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                      Confirmar
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-                      <input
-                        type={showConf ? "text" : "password"}
-                        value={confirm}
-                        onChange={(e) => { setConfirm(e.target.value); setError(""); }}
-                        placeholder="••••••••"
-                        autoComplete="new-password"
-                        className={`w-full pl-10 pr-10 py-2.5 bg-[#0e0e1c] rounded-xl text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-1 transition-all border ${
-                          passwordMismatch
-                            ? "border-red-500/40 focus:border-red-500/60 focus:ring-red-500/20"
-                            : passwordMatch
-                            ? "border-emerald-500/40 focus:border-emerald-500/60 focus:ring-emerald-500/20"
-                            : "border-[#1e1e35] focus:border-purple-500/60 focus:ring-purple-500/20"
-                        }`}
-                      />
+                {/* Confirm password */}
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-white/60">
+                    Confirmar contraseña
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConf ? "text" : "password"}
+                      value={confirm}
+                      onChange={(e) => { setConfirm(e.target.value); setError(""); }}
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                      className="w-full px-4 py-3 pr-11 rounded-lg text-sm text-white placeholder:text-white/20 outline-none transition-all"
+                      style={{
+                        ...inputBase,
+                        borderColor: passwordBad
+                          ? "rgba(239,68,68,0.5)"
+                          : passwordMatch
+                          ? "rgba(16,185,129,0.5)"
+                          : "rgba(255,255,255,0.10)",
+                      }}
+                      onFocus={onFocus}
+                      onBlur={onBlur}
+                    />
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                      {passwordMatch && (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      )}
                       <button
                         type="button"
                         onClick={() => setShowConf(!showConf)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-colors"
+                        className="text-white/25 hover:text-white/60 transition-colors"
                       >
-                        {showConf ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        {showConf ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
-                      {passwordMatch && (
-                        <CheckCircle2 className="absolute right-8 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-emerald-400" />
-                      )}
                     </div>
-                    {passwordMismatch && (
-                      <p className="text-[10px] text-red-400 mt-1">Las contraseñas no coinciden</p>
-                    )}
                   </div>
-                </div>
-
-                {/* Plan selection */}
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-2">
-                    <Building2 className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
-                    Plan
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {PLANS.map((p) => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => setPlan(p.id)}
-                        className={`relative flex flex-col items-center gap-1 p-3 rounded-xl border text-center transition-all ${
-                          plan === p.id
-                            ? "border-opacity-60 bg-opacity-10"
-                            : "border-[#1e1e35] bg-transparent hover:border-[#2a2a45]"
-                        }`}
-                        style={
-                          plan === p.id
-                            ? {
-                                borderColor: p.color,
-                                backgroundColor: `${p.color}10`,
-                              }
-                            : {}
-                        }
-                      >
-                        {plan === p.id && (
-                          <div
-                            className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full"
-                            style={{ background: p.color }}
-                          />
-                        )}
-                        <span
-                          className="text-xs font-semibold"
-                          style={{ color: plan === p.id ? p.color : "#94a3b8" }}
-                        >
-                          {p.name}
-                        </span>
-                        <span className="text-[9px] text-slate-600 leading-tight">{p.desc}</span>
-                      </button>
-                    ))}
-                  </div>
+                  {passwordBad && (
+                    <p className="text-[11px] text-red-400">Las contraseñas no coinciden</p>
+                  )}
                 </div>
 
                 {/* Submit */}
-                <button
+                <motion.button
                   type="submit"
-                  disabled={loading || passwordMismatch}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30"
+                  disabled={loading || passwordBad}
+                  className="w-full py-3 rounded-lg text-sm font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed mt-1"
+                  style={{
+                    background: loading || passwordBad
+                      ? "rgba(99,102,241,0.4)"
+                      : "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+                    boxShadow: loading || passwordBad ? "none" : "0 4px 20px rgba(99,102,241,0.35)",
+                  }}
+                  whileHover={!loading && !passwordBad ? { opacity: 0.92, scale: 1.01 } : {}}
+                  whileTap={!loading && !passwordBad ? { scale: 0.99 } : {}}
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Creando cuenta…
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-4 h-4" />
-                      Crear cuenta gratis
-                    </>
-                  )}
-                </button>
+                  <AnimatePresence mode="wait">
+                    {loading ? (
+                      <motion.span key="l" className="flex items-center justify-center gap-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <Loader2 className="w-4 h-4 animate-spin" /> Creando cuenta…
+                      </motion.span>
+                    ) : (
+                      <motion.span key="i" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        Crear cuenta gratis
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
 
-                <p className="text-[10px] text-slate-600 text-center">
+                {/* Terms */}
+                <p className="text-[11px] text-white/20 text-center leading-relaxed">
                   Al registrarte aceptas nuestros{" "}
-                  <a href="#" className="text-purple-500 hover:text-purple-400 transition-colors">
+                  <a href="#" className="text-white/35 underline underline-offset-2 hover:text-white/60 transition-colors">
                     Términos de servicio
                   </a>{" "}
                   y{" "}
-                  <a href="#" className="text-purple-500 hover:text-purple-400 transition-colors">
+                  <a href="#" className="text-white/35 underline underline-offset-2 hover:text-white/60 transition-colors">
                     Política de privacidad
                   </a>
                 </p>
               </form>
             </div>
-
-            <div className="h-px w-full bg-gradient-to-r from-transparent via-purple-500/20 to-transparent" />
           </div>
 
-          <p className="text-center text-sm text-slate-600 mt-5">
-            ¿Ya tienes cuenta?{" "}
-            <Link href="/login" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
-              Iniciar sesión
-            </Link>
-          </p>
-        </div>
+          {/* Self-host section — mirrors N8N */}
+          <div
+            className="mt-5 p-5 rounded-xl"
+            style={{
+              background: "rgba(255,255,255,0.025)",
+              border: "1px solid rgba(255,255,255,0.07)",
+            }}
+          >
+            <p className="text-sm font-semibold text-white/60 mb-1">
+              ¿Quieres auto-alojar DeepNode Flow?
+            </p>
+            <p className="text-xs text-white/30 leading-relaxed">
+              La Community Edition es gratuita para individuos con automatizaciones básicas sin necesidad de cuenta.{" "}
+              <a
+                href="https://github.com/DeepNode-Industries"
+                target="_blank"
+                rel="noreferrer"
+                className="text-white/45 underline underline-offset-2 hover:text-white/65 transition-colors"
+              >
+                Abrir docs de instalación
+              </a>
+            </p>
+          </div>
+        </motion.div>
       </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 text-center py-5 px-4">
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <div className="w-4 h-4 rounded-md overflow-hidden opacity-60">
-            <Image src="/logo.png" alt="DeepNode" width={16} height={16} className="w-full h-full object-cover" />
-          </div>
-          <p className="text-[11px] text-slate-600 font-medium">DeepNode Industries © 2026</p>
-        </div>
-        <p className="text-[10px] text-slate-700">
-          Todos los derechos reservados · Plataforma de Automatización con IA
-        </p>
+      {/* ── Footer ────────────────────────────────────────────────── */}
+      <footer className="shrink-0 text-center py-5 px-4">
+        <p className="text-xs text-white/15">DeepNode Industries © 2026</p>
       </footer>
     </div>
   );
