@@ -29,23 +29,44 @@ import { NODE_DEFINITIONS } from "@/lib/node-definitions";
 import type { WorkflowNode } from "@/lib/types";
 
 function BuilderCanvas() {
-  const {
-    rfNodes, rfEdges, onNodesChange, onEdgesChange, onConnect,
-    selectNode, selectedNodeId, activeWorkflow, saveActiveWorkflow,
-    runWorkflow, isExecuting, showLogs, toggleLogs, exportWorkflowJSON,
-    loadWorkflowIntoBuilder, createNewWorkflow,
-  } = useFlowStore();
+  // ── Granular selectors: each picks only what it needs ──────────────────
+  // This prevents the component re-rendering on every unrelated store change.
+  const rfNodes         = useFlowStore((s) => s.rfNodes);
+  const rfEdges         = useFlowStore((s) => s.rfEdges);
+  const selectedNodeId  = useFlowStore((s) => s.selectedNodeId);
+  const isExecuting     = useFlowStore((s) => s.isExecuting);
+  const showLogs        = useFlowStore((s) => s.showLogs);
+
+  // Stable action references — Zustand guarantees these never change identity
+  const onNodesChange         = useFlowStore((s) => s.onNodesChange);
+  const onEdgesChange         = useFlowStore((s) => s.onEdgesChange);
+  const onConnect             = useFlowStore((s) => s.onConnect);
+  const selectNode            = useFlowStore((s) => s.selectNode);
+  const saveActiveWorkflow    = useFlowStore((s) => s.saveActiveWorkflow);
+  const runWorkflow           = useFlowStore((s) => s.runWorkflow);
+  const toggleLogs            = useFlowStore((s) => s.toggleLogs);
+  const exportWorkflowJSON    = useFlowStore((s) => s.exportWorkflowJSON);
+  const loadWorkflowIntoBuilder = useFlowStore((s) => s.loadWorkflowIntoBuilder);
+  const createNewWorkflow     = useFlowStore((s) => s.createNewWorkflow);
 
   const { screenToFlowPosition } = useReactFlow();
   const searchParams = useSearchParams();
   const router = useRouter();
   const workflowId = searchParams.get("id");
 
-  const [workflowName, setWorkflowName] = React.useState(activeWorkflow?.name ?? "Nuevo Workflow");
+  const [workflowName, setWorkflowName] = React.useState("Nuevo Workflow");
   const [editingName, setEditingName] = React.useState(false);
   const [saved, setSaved] = React.useState(false);
 
+  // Initialization ref — prevents re-running when store state changes
+  const initRef = useRef<string | null>(undefined);
+
   useEffect(() => {
+    // Only re-initialize when the workflowId URL param changes
+    const key = workflowId ?? "__new__";
+    if (initRef.current === key) return;
+    initRef.current = key;
+
     if (workflowId) {
       const wf = getWorkflow(workflowId);
       if (wf) {
@@ -54,14 +75,16 @@ function BuilderCanvas() {
         return;
       }
     }
-    if (!activeWorkflow) {
-      createNewWorkflow();
-    }
-  }, [workflowId, loadWorkflowIntoBuilder, createNewWorkflow, activeWorkflow]);
 
-  useEffect(() => {
-    if (activeWorkflow) setWorkflowName(activeWorkflow.name);
-  }, [activeWorkflow]);
+    // No id or workflow not found → check store state without subscribing
+    const existing = useFlowStore.getState().activeWorkflow;
+    if (!existing) {
+      const newWf = createNewWorkflow();
+      setWorkflowName(newWf.name);
+    } else {
+      setWorkflowName(existing.name);
+    }
+  }, [workflowId, loadWorkflowIntoBuilder, createNewWorkflow]);
 
   const handleSave = () => {
     saveActiveWorkflow(workflowName);
