@@ -97,6 +97,8 @@ interface FlowState {
 
   addNode: (node: WorkflowNode) => void;
   removeNode: (id: string) => void;
+  duplicateNode: (id: string) => void;
+  removeEdge: (id: string) => void;
   selectNode: (id: string | null) => void;
   updateNodeConfig: (nodeId: string, config: Record<string, unknown>) => void;
 
@@ -169,6 +171,25 @@ export const useFlowStore = create<FlowState>((set, get) => ({
       rfNodes: state.rfNodes.filter((n) => n.id !== id),
       rfEdges: state.rfEdges.filter((e) => e.source !== id && e.target !== id),
       selectedNodeId: state.selectedNodeId === id ? null : state.selectedNodeId,
+    }));
+  },
+
+  duplicateNode: (id) => {
+    const state = get();
+    const original = state.rfNodes.find((n) => n.id === id);
+    if (!original) return;
+    const newNode = {
+      ...original,
+      id: `node-${Date.now()}`,
+      position: { x: original.position.x + 40, y: original.position.y + 40 },
+      selected: false,
+    };
+    set((s) => ({ rfNodes: [...s.rfNodes, newNode] }));
+  },
+
+  removeEdge: (id) => {
+    set((state) => ({
+      rfEdges: state.rfEdges.filter((e) => e.id !== id),
     }));
   },
 
