@@ -36,7 +36,10 @@ function StepRow({ step }: { step: ExecutionStep }) {
           <span className="text-[11px] font-semibold text-slate-400">[{step.nodeLabel}]</span>
           <span className="text-[10px] text-slate-700 ml-auto shrink-0">{time}</span>
         </div>
-        <p className={`text-[11px] leading-relaxed font-mono ${textColors[step.status] ?? textColors.pending}`}>
+        <p
+          className={`text-[11px] leading-relaxed ${textColors[step.status] ?? textColors.pending}`}
+          style={{ fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)" }}
+        >
           {step.message}
         </p>
       </div>
@@ -62,7 +65,7 @@ export function ExecutionLogs() {
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[#1e1e35] bg-[#0a0a16]">
         <Terminal className="w-4 h-4 text-purple-400" />
-        <h4 className="text-xs font-semibold text-slate-300 font-[family-name:var(--font-space-grotesk)] flex-1">
+        <h4 className="text-xs font-semibold text-slate-300 flex-1" style={{ fontFamily: "var(--font-onest)" }}>
           Logs de Ejecución
         </h4>
 
