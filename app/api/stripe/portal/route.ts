@@ -5,20 +5,13 @@
  * Body: { customerId: string }
  */
 import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
+import { getStripe, StripeNotConfiguredError } from "@/lib/stripe";
 
 interface PortalBody {
   customerId: string;
 }
 
 export async function POST(req: NextRequest) {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    return NextResponse.json(
-      { error: "Stripe no configurado" },
-      { status: 501 }
-    );
-  }
-
   let body: PortalBody;
   try {
     body = (await req.json()) as PortalBody;
@@ -31,9 +24,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "customerId requerido" }, { status: 400 });
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://deepnode-flow.vercel.app";
 
   try {
+    const stripe = getStripe();
+
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${baseUrl}/settings?section=billing`,
@@ -41,6 +36,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
+    if (err instanceof StripeNotConfiguredError) {
+      return NextResponse.json({ error: err.message }, { status: 501 });
+    }
     const message = err instanceof Error ? err.message : "Error desconocido";
     return NextResponse.json({ error: `Stripe error: ${message}` }, { status: 500 });
   }
