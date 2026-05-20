@@ -8,6 +8,7 @@ import {
   Eye, EyeOff, Loader2, Mail, Lock, Zap,
   AlertCircle, ArrowRight, Sparkles,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/store/auth-store";
 
 /* ── Floating orb ────────────────────────────────────────────────── */
@@ -82,39 +83,67 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#080810] flex flex-col overflow-hidden">
       {/* ── Background effects ────────────────────────────────────── */}
       <div className="absolute inset-0 dn-grid-bg opacity-20 pointer-events-none" />
-      <Orb className="w-[600px] h-[600px] -top-40 -left-40 opacity-[0.06]" color="#7c3aed" />
-      <Orb className="w-[500px] h-[500px] -bottom-40 -right-40 opacity-[0.05]" color="#06b6d4" />
-      <Orb className="w-96 h-96 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.04]" color="#a855f7" />
+      <Orb className="w-[600px] h-[600px] -top-40 -left-40 opacity-[0.07] animate-aurora-1" color="#7c3aed" />
+      <Orb className="w-[500px] h-[500px] -bottom-40 -right-40 opacity-[0.06] animate-aurora-2" color="#06b6d4" />
+      <Orb className="w-96 h-96 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.04] animate-aurora-3" color="#a855f7" />
 
       {/* ── Top brand bar ─────────────────────────────────────────── */}
-      <header className="relative z-10 flex items-center justify-between px-8 py-5">
+      <motion.header
+        className="relative z-10 flex items-center justify-between px-8 py-5"
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+      >
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-8 h-8 rounded-xl overflow-hidden shadow-lg shadow-purple-500/30 group-hover:scale-105 transition-transform">
+          <motion.div
+            className="w-8 h-8 rounded-xl overflow-hidden shadow-lg shadow-purple-500/30"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+          >
             <Image src="/logo.png" alt="DeepNode" width={32} height={32} className="w-full h-full object-cover" />
-          </div>
-          <span className="text-sm font-bold text-slate-300 font-[family-name:var(--font-space-grotesk)] group-hover:text-white transition-colors">
+          </motion.div>
+          <span className="text-sm font-bold text-slate-300 group-hover:text-white transition-colors">
             DeepNode Flow
           </span>
         </Link>
         <Link
           href="/register"
-          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-purple-400 transition-colors"
+          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-purple-400 transition-colors group"
         >
           ¿Sin cuenta? <span className="text-purple-400 font-medium">Regístrate</span>
-          <ArrowRight className="w-3.5 h-3.5 text-purple-400" />
+          <motion.div
+            className="text-purple-400"
+            animate={{ x: [0, 3, 0] }}
+            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+          >
+            <ArrowRight className="w-3.5 h-3.5" />
+          </motion.div>
         </Link>
-      </header>
+      </motion.header>
 
       {/* ── Main ──────────────────────────────────────────────────── */}
       <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
 
           {/* Logo + title */}
-          <div className="text-center mb-8">
+          <motion.div
+            className="text-center mb-8"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
+          >
             <div className="flex justify-center mb-5">
               <div className="relative">
-                <div className="absolute inset-0 bg-purple-500/25 blur-2xl rounded-full scale-150 animate-pulse" />
-                <div className="relative w-20 h-20 rounded-3xl overflow-hidden shadow-2xl shadow-purple-500/40 border border-white/5">
+                <motion.div
+                  className="absolute inset-0 bg-purple-500/30 blur-2xl rounded-full"
+                  animate={{ scale: [1.4, 1.7, 1.4], opacity: [0.4, 0.6, 0.4] }}
+                  transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                />
+                <motion.div
+                  className="relative w-20 h-20 rounded-3xl overflow-hidden shadow-2xl shadow-purple-500/40 border border-white/5"
+                  whileHover={{ scale: 1.08, rotate: 3 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                >
                   <Image
                     src="/logo.png"
                     alt="DeepNode Industries"
@@ -123,21 +152,26 @@ export default function LoginPage() {
                     className="w-full h-full object-cover"
                     priority
                   />
-                </div>
+                </motion.div>
               </div>
             </div>
 
-            <h1 className="text-2xl font-bold text-white font-[family-name:var(--font-space-grotesk)] mb-1">
+            <h1 className="text-2xl font-bold text-white mb-1">
               Bienvenido a{" "}
               <span className="dn-gradient-text">DeepNode Flow</span>
             </h1>
             <p className="text-sm text-slate-500">
               Inicia sesión en tu cuenta para continuar
             </p>
-          </div>
+          </motion.div>
 
           {/* Card */}
-          <div className="dn-glass-bright rounded-3xl border border-[#1e1e35] shadow-2xl shadow-black/40 overflow-hidden">
+          <motion.div
+            className="dn-glass-bright rounded-3xl border border-[#1e1e35] shadow-2xl shadow-black/40 overflow-hidden"
+            initial={{ opacity: 0, y: 32, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.18, duration: 0.5, ease: "easeOut" }}
+          >
             {/* Top accent bar */}
             <div className="h-px w-full bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
 
@@ -234,37 +268,59 @@ export default function LoginPage() {
                 </div>
 
                 {/* Submit */}
-                <button
+                <motion.button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 mt-2"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm shadow-lg shadow-purple-500/20 mt-2 dn-btn-glow"
+                  whileHover={!loading ? { scale: 1.02, y: -1 } : {}}
+                  whileTap={!loading ? { scale: 0.98 } : {}}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Verificando…
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-4 h-4" />
-                      Iniciar sesión
-                    </>
-                  )}
-                </button>
+                  <AnimatePresence mode="wait">
+                    {loading ? (
+                      <motion.span
+                        key="loading"
+                        className="flex items-center gap-2"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Verificando…
+                      </motion.span>
+                    ) : (
+                      <motion.span
+                        key="idle"
+                        className="flex items-center gap-2"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        <Zap className="w-4 h-4" />
+                        Iniciar sesión
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
               </form>
             </div>
 
             {/* Bottom accent */}
             <div className="h-px w-full bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
-          </div>
+          </motion.div>
 
           {/* Register link */}
-          <p className="text-center text-sm text-slate-600 mt-6">
+          <motion.p
+            className="text-center text-sm text-slate-600 mt-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.45 }}
+          >
             ¿No tienes cuenta?{" "}
             <Link href="/register" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
               Crear cuenta gratis
             </Link>
-          </p>
+          </motion.p>
         </div>
       </main>
 

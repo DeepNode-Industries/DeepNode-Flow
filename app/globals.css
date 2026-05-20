@@ -133,62 +133,95 @@ code, kbd, pre, .font-mono,
   background: #7c3aed;
 }
 
-/* React Flow overrides */
+/* ── React Flow — Premium overrides ───────────────────────────── */
 .react-flow__background {
   background-color: #080810 !important;
 }
 .react-flow__minimap {
   background-color: #0e0e1c !important;
   border: 1px solid #1e1e35 !important;
-  border-radius: 12px !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
 }
 .react-flow__controls {
-  border: 1px solid #1e1e35 !important;
-  border-radius: 12px !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 14px !important;
   overflow: hidden;
-  background: #0e0e1c !important;
+  background: rgba(14,14,28,0.9) !important;
+  backdrop-filter: blur(16px) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
 }
 .react-flow__controls-button {
-  background: #0e0e1c !important;
-  border-bottom: 1px solid #1e1e35 !important;
-  fill: #94a3b8 !important;
-  color: #94a3b8 !important;
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  fill: rgba(148,163,184,0.6) !important;
+  color: rgba(148,163,184,0.6) !important;
+  transition: all 0.15s ease !important;
 }
 .react-flow__controls-button:hover {
-  background: #13131f !important;
+  background: rgba(99,102,241,0.1) !important;
   fill: #a855f7 !important;
+  color: #a855f7 !important;
 }
+
+/* Flowing animated edges */
 .react-flow__edge-path {
   stroke: #7c3aed !important;
   stroke-width: 2 !important;
+  stroke-dasharray: 6 4 !important;
+  animation: flow-dash 0.7s linear infinite !important;
+  filter: drop-shadow(0 0 3px rgba(124,58,237,0.5));
 }
 .react-flow__edge.selected .react-flow__edge-path,
 .react-flow__edge:hover .react-flow__edge-path {
   stroke: #06b6d4 !important;
   stroke-width: 2.5 !important;
+  filter: drop-shadow(0 0 6px rgba(6,182,212,0.7)) !important;
 }
 .react-flow__connection-path {
   stroke: #a855f7 !important;
   stroke-width: 2 !important;
+  stroke-dasharray: 5 3 !important;
+  animation: flow-dash 0.6s linear infinite !important;
 }
+
+/* Handles */
 .react-flow__handle {
   background: #7c3aed !important;
-  border: 2px solid #0e0e1c !important;
+  border: 2px solid #0a0a16 !important;
   width: 10px !important;
   height: 10px !important;
+  transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
 .react-flow__handle:hover,
 .react-flow__handle-connecting {
   background: #06b6d4 !important;
-  transform: scale(1.4);
+  transform: scale(1.5) !important;
+  box-shadow: 0 0 8px rgba(6,182,212,0.6) !important;
 }
 
 /* Node selection */
 .react-flow__node.selected > div {
-  box-shadow: 0 0 0 2px #7c3aed, 0 0 20px rgba(124, 58, 237, 0.4) !important;
+  box-shadow: 0 0 0 2px #7c3aed, 0 0 24px rgba(124,58,237,0.45) !important;
 }
 
-/* Animations */
+/* Node execution animations */
+.react-flow__node[data-status="running"] > div {
+  animation: node-running 1s ease-in-out infinite !important;
+}
+.react-flow__node[data-status="success"] > div {
+  animation: node-success-flash 2s ease-out forwards !important;
+}
+.react-flow__node[data-status="error"] > div {
+  animation: node-error-flash 2s ease-out forwards !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DeepNode Flow — Premium Animation System
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Base keyframes ────────────────────────────────────────────── */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
@@ -210,21 +243,196 @@ code, kbd, pre, .font-mono,
   100% { background-position: 0% 50%; }
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+/* ── Shimmer — skeleton loading ────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -400% 0; }
+  100% { background-position: 400% 0; }
 }
 
-.animate-pulse-neon {
-  animation: pulse-neon 2s ease-in-out infinite;
+/* ── Aurora — ambient blob drift ──────────────────────────────── */
+@keyframes aurora-1 {
+  0%, 100% { transform: translate(0, 0) scale(1);    opacity: 0.35; }
+  33%       { transform: translate(5%, -4%) scale(1.08); opacity: 0.5; }
+  66%       { transform: translate(-3%, 3%) scale(0.95); opacity: 0.3; }
+}
+@keyframes aurora-2 {
+  0%, 100% { transform: translate(0, 0) scale(1);     opacity: 0.25; }
+  40%       { transform: translate(-6%, 5%) scale(1.12); opacity: 0.4; }
+  70%       { transform: translate(4%, -2%) scale(0.92); opacity: 0.2; }
+}
+@keyframes aurora-3 {
+  0%, 100% { transform: translate(0, 0) scale(1);    opacity: 0.2; }
+  50%       { transform: translate(3%, 6%) scale(1.1); opacity: 0.35; }
 }
 
-.animate-spin-slow {
-  animation: spin-slow 8s linear infinite;
+/* ── Breathe — gentle glow pulse ──────────────────────────────── */
+@keyframes breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%       { opacity: 0.9;  transform: scale(1.04); }
 }
 
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient-shift 4s ease infinite;
+/* ── Glow border cycle ─────────────────────────────────────────── */
+@keyframes glow-border {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(99,102,241,0.25), 0 0 10px rgba(99,102,241,0.08); }
+  50%       { box-shadow: 0 0 0 1px rgba(99,102,241,0.55), 0 0 22px rgba(99,102,241,0.22); }
+}
+
+/* ── Pulsing status dot ────────────────────────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1);   opacity: 1; }
+  50%       { transform: scale(1.6); opacity: 0.6; }
+}
+
+/* ── Slide animations ──────────────────────────────────────────── */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-right {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-left {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fade-scale-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Flowing edge animation ────────────────────────────────────── */
+@keyframes flow-dash {
+  to { stroke-dashoffset: -24; }
+}
+
+/* ── Node execution states ─────────────────────────────────────── */
+@keyframes node-running {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(99,102,241,0.4), 0 0 20px rgba(99,102,241,0.15); }
+  50%       { box-shadow: 0 0 0 3px rgba(99,102,241,0.9), 0 0 40px rgba(99,102,241,0.45); }
+}
+@keyframes node-success-flash {
+  0%   { box-shadow: 0 0 0 3px rgba(16,185,129,0.9), 0 0 40px rgba(16,185,129,0.5); }
+  100% { box-shadow: 0 0 0 2px rgba(16,185,129,0.25), 0 0 8px rgba(16,185,129,0.1); }
+}
+@keyframes node-error-flash {
+  0%   { box-shadow: 0 0 0 3px rgba(239,68,68,0.9), 0 0 40px rgba(239,68,68,0.5); }
+  100% { box-shadow: 0 0 0 2px rgba(239,68,68,0.25), 0 0 8px rgba(239,68,68,0.1); }
+}
+
+/* ── Upgrade button shimmer ────────────────────────────────────── */
+@keyframes btn-shine {
+  0%   { left: -100%; }
+  60%, 100% { left: 200%; }
+}
+
+/* ── Text glow flicker ─────────────────────────────────────────── */
+@keyframes text-glow {
+  0%, 100% { text-shadow: 0 0 6px rgba(99,102,241,0.3); }
+  50%       { text-shadow: 0 0 16px rgba(99,102,241,0.65), 0 0 30px rgba(99,102,241,0.25); }
+}
+
+/* ── Number count flash ────────────────────────────────────────── */
+@keyframes count-flash {
+  0%   { opacity: 0.3; transform: translateY(4px); }
+  100% { opacity: 1;   transform: translateY(0); }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Utility animation classes
+   ──────────────────────────────────────────────────────────────── */
+
+.animate-float        { animation: float 3s ease-in-out infinite; }
+.animate-pulse-neon   { animation: pulse-neon 2s ease-in-out infinite; }
+.animate-spin-slow    { animation: spin-slow 8s linear infinite; }
+.animate-gradient     { background-size: 200% 200%; animation: gradient-shift 4s ease infinite; }
+.animate-shimmer      { background-size: 400% 100%; animation: shimmer 2s ease-in-out infinite; }
+.animate-breathe      { animation: breathe 3.5s ease-in-out infinite; }
+.animate-pulse-dot    { animation: pulse-dot 2s ease-in-out infinite; }
+.animate-glow-border  { animation: glow-border 3s ease-in-out infinite; }
+.animate-text-glow    { animation: text-glow 3s ease-in-out infinite; }
+.animate-aurora-1     { animation: aurora-1 12s ease-in-out infinite; }
+.animate-aurora-2     { animation: aurora-2 16s ease-in-out infinite; }
+.animate-aurora-3     { animation: aurora-3 20s ease-in-out infinite; }
+.animate-slide-up     { animation: slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-slide-down   { animation: slide-down 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-slide-right  { animation: slide-right 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-slide-left   { animation: slide-left 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-in      { animation: fade-in 0.3s ease both; }
+.animate-fade-scale   { animation: fade-scale-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* ── Stagger helpers (add to container, children get --i var) ──── */
+.dn-stagger > * { animation-delay: calc(var(--i, 0) * 60ms); }
+
+/* ── Shimmer skeleton ──────────────────────────────────────────── */
+.dn-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 0%,
+    rgba(255,255,255,0.09) 40%,
+    rgba(255,255,255,0.03) 80%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* ── Hover lift card ───────────────────────────────────────────── */
+.dn-hover-lift {
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.22s ease,
+              border-color 0.22s ease;
+}
+.dn-hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+/* ── Press scale ───────────────────────────────────────────────── */
+.dn-press { transition: transform 0.1s ease; }
+.dn-press:active { transform: scale(0.97); }
+
+/* ── Magnetic primary button ───────────────────────────────────── */
+.dn-btn-glow {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.2s ease;
+}
+.dn-btn-glow::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  animation: btn-shine 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+.dn-btn-glow:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(99,102,241,0.4);
+}
+.dn-btn-glow:active { transform: scale(0.97) translateY(0); }
+
+/* ── Pulsing status dot ────────────────────────────────────────── */
+.dn-status-pulse {
+  position: relative;
+}
+.dn-status-pulse::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: inherit;
+  opacity: 0;
+  animation: pulse-dot 2s ease-in-out infinite;
 }
 
 /* ── New design tokens ────────────────────────────────────────── */

@@ -3,6 +3,7 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 import { TopBar } from "@/components/layout/TopBar";
 import { Footer } from "@/components/layout/Footer";
 import { UpgradeBanner } from "@/components/ui/UpgradeBanner";
+import { PageTransition } from "@/components/ui/PageTransition";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -13,7 +14,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children, noPadding }: DashboardLayoutProps) {
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-[#090912]">
+      <div className="min-h-screen bg-[#090912] relative">
         <TopBar />
         {/* pt-14 offsets the fixed 56px topbar */}
         <main
@@ -21,7 +22,7 @@ export function DashboardLayout({ children, noPadding }: DashboardLayoutProps) {
             noPadding ? "" : "px-4 md:px-6 py-6"
           }`}
         >
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
         <Footer />
         <UpgradeBanner />
