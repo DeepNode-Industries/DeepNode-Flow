@@ -211,3 +211,44 @@ h1, h2, h3, h4, h5, h6 {
   background-size: 200% 200%;
   animation: gradient-shift 4s ease infinite;
 }
+
+/* ── New design tokens ────────────────────────────────────────── */
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.4); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.7); }
+
+/* Selection */
+::selection { background: rgba(99,102,241,0.35); color: #fff; }
+
+/* Focus visible */
+:focus-visible { outline: 2px solid rgba(99,102,241,0.6); outline-offset: 2px; border-radius: 6px; }
+
+/* Gradient text utility */
+.dn-gradient-text-primary {
+  background: linear-gradient(135deg, #22d3ee, #3b82f6, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Topbar glass utility */
+.dn-topbar {
+  background: rgba(9,9,18,0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Card glass new */
+.dn-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.2s ease;
+}
+.dn-card:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.15);
+}
