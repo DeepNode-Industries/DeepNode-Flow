@@ -1,22 +1,28 @@
 import React from "react";
-import { Sidebar } from "./Sidebar";
-import { Footer } from "./Footer";
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { TopBar } from "@/components/layout/TopBar";
+import { Footer } from "@/components/layout/Footer";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+  /** When true, removes horizontal padding so content can go edge-to-edge */
   noPadding?: boolean;
 }
 
 export function DashboardLayout({ children, noPadding }: DashboardLayoutProps) {
   return (
     <AuthGuard>
-      <div className="flex min-h-screen bg-[#080810]">
-        <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <main className={`flex-1 ${noPadding ? "" : "p-6"}`}>{children}</main>
-          <Footer />
-        </div>
+      <div className="min-h-screen bg-[#090912]">
+        <TopBar />
+        {/* pt-14 offsets the fixed 56px topbar */}
+        <main
+          className={`pt-14 min-h-[calc(100vh-56px)] ${
+            noPadding ? "" : "px-4 md:px-6 py-6"
+          }`}
+        >
+          {children}
+        </main>
+        <Footer />
       </div>
     </AuthGuard>
   );
