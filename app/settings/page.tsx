@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import {
   Sparkles, MessageSquare, Mail, Globe, Shield,
   Save, Eye, EyeOff, CheckCircle2, AlertCircle, Zap, Send,
-  User, ChevronRight, CreditCard, ArrowRight, Star,
+  User, ChevronRight, CreditCard, ArrowRight, Star, ServerCog,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { getSettings, saveSettings } from "@/lib/storage";
@@ -167,6 +167,14 @@ function SectionContent({
   const session = useAuthStore((s) => s.session);
   const router  = useRouter();
   const section = SECTIONS.find((s) => s.id === sectionId);
+  const [svcConfig, setSvcConfig] = React.useState<Record<string, boolean>>({});
+
+  React.useEffect(() => {
+    fetch("/api/config")
+      .then((r) => r.ok ? r.json() : {})
+      .then((cfg) => setSvcConfig(cfg as Record<string, boolean>))
+      .catch(() => null);
+  }, []);
 
   if (sectionId === "general") {
     return (
@@ -383,8 +391,33 @@ function SectionContent({
 
   if (!section || section.fields.length === 0) return null;
 
+  // Map section IDs to their server config key
+  const sectionConfigKey: Record<string, string> = {
+    telegram: "telegram", ai: "grok", whatsapp: "whatsapp", email: "email",
+  };
+  const configKey   = sectionConfigKey[sectionId];
+  const isAutoReady = configKey ? svcConfig[configKey] === true : false;
+
   return (
     <div className="space-y-5">
+      {/* Auto-configured banner */}
+      {isAutoReady && (
+        <div
+          className="flex items-start gap-3 p-3.5 rounded-xl"
+          style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.25)" }}
+        >
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-emerald-300">
+              Servicio auto-configurado desde variables de entorno ✓
+            </p>
+            <p className="text-xs text-white/40 mt-0.5">
+              Las credenciales están cargadas desde tu servidor. Los campos de abajo son opcionales para override local.
+            </p>
+          </div>
+        </div>
+      )}
+
       {section.fields.map((field) => (
         <div key={field.key}>
           <label className="block text-xs font-medium text-white/50 mb-1.5">
@@ -393,7 +426,7 @@ function SectionContent({
           <MaskInput
             value={String(settings[field.key] ?? "")}
             onChange={(v) => onChange(field.key, v)}
-            placeholder={field.placeholder}
+            placeholder={isAutoReady ? "••••••• (configurado en servidor)" : field.placeholder}
             type={field.type}
           />
           {field.hint && (
@@ -402,6 +435,29 @@ function SectionContent({
         </div>
       ))}
     </div>
+  );
+}
+
+/* ── Server config status badge ─────────────────────────────────── */
+interface ServerConfig { telegram: boolean; openai: boolean; openrouter: boolean; grok: boolean; whatsapp: boolean; email: boolean; stripe: boolean }
+
+function ServiceBadge({ active, label }: { active: boolean; label: string }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+      style={active ? {
+        background: "rgba(16,185,129,0.15)",
+        border: "1px solid rgba(16,185,129,0.3)",
+        color: "#34d399",
+      } : {
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        color: "rgba(255,255,255,0.3)",
+      }}
+    >
+      <span className="w-1.5 h-1.5 rounded-full" style={{ background: active ? "#10b981" : "rgba(255,255,255,0.2)" }} />
+      {active ? `${label} activo` : `${label} no configurado`}
+    </span>
   );
 }
 
@@ -422,11 +478,17 @@ export default function SettingsPage() {
     webhookBaseUrl: "https://deepnode.app/webhooks",
     mode:           "demo",
   });
-  const [saved,           setSaved]           = useState(false);
-  const [activeSection,   setActiveSection]   = useState<SectionId>("general");
+  const [saved,         setSaved]         = useState(false);
+  const [activeSection, setActiveSection] = useState<SectionId>("general");
+  const [serverConfig,  setServerConfig]  = useState<ServerConfig | null>(null);
 
   useEffect(() => {
     setSettings(getSettings());
+    // Fetch which services are configured server-side
+    fetch("/api/config")
+      .then((r) => r.ok ? r.json() : null)
+      .then((cfg) => { if (cfg) setServerConfig(cfg as ServerConfig); })
+      .catch(() => null);
   }, []);
 
   const handleChange = (key: keyof Settings, value: string) => {
@@ -444,9 +506,9 @@ export default function SettingsPage() {
   return (
     <DashboardLayout>
       {/* ── Header ─────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white font-[family-name:var(--font-space-grotesk)]">
+          <h1 className="text-2xl font-bold text-white">
             Configuración
           </h1>
           <p className="text-sm text-white/40 mt-0.5">
@@ -578,6 +640,25 @@ export default function SettingsPage() {
                     {settings.mode === "demo" ? "Demo" : "Producción"}
                   </span>
                 </div>
+              </div>
+            )}
+
+            {/* ── Auto-detected services banner ──────────────────── */}
+            {serverConfig && (
+              <div
+                className="flex flex-wrap items-center gap-2 px-5 py-3"
+                style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.01)" }}
+              >
+                <div className="flex items-center gap-1.5 text-[10px] text-white/30 mr-1">
+                  <ServerCog className="w-3 h-3" />
+                  Variables de entorno:
+                </div>
+                <ServiceBadge active={serverConfig.telegram}   label="Telegram"    />
+                <ServiceBadge active={serverConfig.grok}       label="Grok AI"     />
+                <ServiceBadge active={serverConfig.openai}     label="OpenAI"      />
+                <ServiceBadge active={serverConfig.openrouter} label="OpenRouter"  />
+                <ServiceBadge active={serverConfig.email}      label="Email SMTP"  />
+                <ServiceBadge active={serverConfig.stripe}     label="Stripe"      />
               </div>
             )}
 

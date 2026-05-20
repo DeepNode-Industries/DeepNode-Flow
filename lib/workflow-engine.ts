@@ -1,5 +1,40 @@
 import type { Workflow, ExecutionLog, ExecutionStep, NodeStatus, NodeConfig } from "./types";
-import { saveExecutionLog, saveWorkflow, getWorkflow, getSettings } from "./storage";
+import { saveExecutionLog, saveWorkflow, getWorkflow } from "./storage";
+
+/* ── Server config cache (fetched once per session) ─────────────── */
+interface ServerConfig {
+  telegram: boolean;
+  openai: boolean;
+  openrouter: boolean;
+  grok: boolean;
+  whatsapp: boolean;
+  email: boolean;
+  stripe: boolean;
+}
+
+let _serverConfig: ServerConfig | null = null;
+
+async function getServerConfig(): Promise<ServerConfig> {
+  if (_serverConfig) return _serverConfig;
+  try {
+    const res = await fetch("/api/config");
+    if (res.ok) {
+      _serverConfig = (await res.json()) as ServerConfig;
+      return _serverConfig;
+    }
+  } catch {
+    // ignore — fall back to all-false
+  }
+  return {
+    telegram: false, openai: false, openrouter: false,
+    grok: false, whatsapp: false, email: false, stripe: false,
+  };
+}
+
+/** Call this after saving new env vars to force a refresh */
+export function invalidateServerConfig() {
+  _serverConfig = null;
+}
 
 // ─── Shared result type ───────────────────────────────────────────────────
 
@@ -161,7 +196,7 @@ function getExecutionOrder(workflow: Workflow): string[] {
   return order;
 }
 
-// Execute a single node — real in production, simulated in demo
+// Execute a single node — auto-detects real vs simulation from server config
 async function simulateNode(
   nodeId: string,
   nodeType: string,
@@ -169,16 +204,19 @@ async function simulateNode(
   nodeConfig: NodeConfig,
   onStep: (step: ExecutionStep) => void
 ): Promise<ExecutionStep> {
-  const delay = 400 + Math.random() * 1200;
+  const delay = 400 + Math.random() * 800;
   await sleep(delay);
 
-  const settings = getSettings();
-  const isProduction = settings.mode === "production";
+  // Fetch which services are configured server-side (env vars).
+  // This is cached after the first call, so it's fast.
+  const serverConfig = await getServerConfig();
 
-  // send-telegram: real call in production, simulation otherwise
+  // ── Send Telegram ────────────────────────────────────────────────
   if (nodeType === "send-telegram") {
     let result: NodeExecutionResult;
-    if (isProduction) {
+
+    if (serverConfig.telegram) {
+      // Real API call — TELEGRAM_BOT_TOKEN is set in env
       try {
         result = await executeTelegramNode(nodeConfig);
       } catch (err) {
@@ -186,6 +224,7 @@ async function simulateNode(
         result = { success: false, output: { error: msg }, log: `[Telegram] Error: ${msg}` };
       }
     } else {
+      // No token configured → simulate
       const chatId = String(nodeConfig.chatId ?? "@mi_canal");
       result = {
         success: true,
@@ -193,9 +232,9 @@ async function simulateNode(
         log: `[Telegram Demo] ✓ Mensaje simulado enviado a ${chatId}`,
       };
     }
+
     const step: ExecutionStep = {
-      nodeId,
-      nodeLabel,
+      nodeId, nodeLabel,
       status: result.success ? "success" : "error",
       message: result.log,
       timestamp: nowISO(),
@@ -205,11 +244,12 @@ async function simulateNode(
     return step;
   }
 
-  // grok-chat: real call in production, simulation otherwise
+  // ── Grok / AI nodes ──────────────────────────────────────────────
   if (nodeType === "grok-chat") {
+    const hasAI = serverConfig.grok || serverConfig.openai || serverConfig.openrouter;
     let result: NodeExecutionResult;
 
-    if (isProduction) {
+    if (hasAI) {
       try {
         result = await executeAINode(nodeType, nodeConfig);
       } catch (err) {
@@ -222,8 +262,7 @@ async function simulateNode(
     }
 
     const step: ExecutionStep = {
-      nodeId,
-      nodeLabel,
+      nodeId, nodeLabel,
       status: result.success ? "success" : "error",
       message: result.log,
       timestamp: nowISO(),
@@ -233,7 +272,7 @@ async function simulateNode(
     return step;
   }
 
-  // All other nodes: use standard simulation
+  // ── All other nodes: standard simulation ─────────────────────────
   const step = buildSimulatedStep(nodeId, nodeType, nodeLabel);
   onStep(step);
   return step;
