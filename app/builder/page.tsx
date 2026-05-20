@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useCallback, useRef, Suspense } from "react";
+import React, { useEffect, useCallback, useRef, Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   ReactFlow,
@@ -11,7 +11,7 @@ import {
   ReactFlowProvider,
   useReactFlow,
 } from "@xyflow/react";
-import type { Node } from "@xyflow/react";
+import type { Node, Edge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import {
   Save, Play, Download, ChevronLeft, Loader2,
@@ -21,6 +21,8 @@ import { TopBar } from "@/components/layout/TopBar";
 import { NodePanel } from "@/components/flow/NodePanel";
 import { PropertiesPanel } from "@/components/flow/PropertiesPanel";
 import { ExecutionLogs } from "@/components/flow/ExecutionLogs";
+import { ContextMenu } from "@/components/flow/ContextMenu";
+import type { ContextMenuTarget } from "@/components/flow/ContextMenu";
 import { NODE_TYPES } from "@/components/flow/CustomNodes";
 import { useFlowStore } from "@/store/flow-store";
 import { getWorkflow } from "@/lib/storage";
@@ -42,6 +44,9 @@ function BuilderCanvas() {
   const onEdgesChange            = useFlowStore((s) => s.onEdgesChange);
   const onConnect                = useFlowStore((s) => s.onConnect);
   const selectNode               = useFlowStore((s) => s.selectNode);
+  const removeNode               = useFlowStore((s) => s.removeNode);
+  const duplicateNode            = useFlowStore((s) => s.duplicateNode);
+  const removeEdge               = useFlowStore((s) => s.removeEdge);
   const saveActiveWorkflow       = useFlowStore((s) => s.saveActiveWorkflow);
   const runWorkflow              = useFlowStore((s) => s.runWorkflow);
   const toggleLogs               = useFlowStore((s) => s.toggleLogs);
@@ -49,7 +54,10 @@ function BuilderCanvas() {
   const loadWorkflowIntoBuilder  = useFlowStore((s) => s.loadWorkflowIntoBuilder);
   const createNewWorkflow        = useFlowStore((s) => s.createNewWorkflow);
 
-  const { screenToFlowPosition } = useReactFlow();
+  /* Context menu state */
+  const [ctxMenu, setCtxMenu] = useState<ContextMenuTarget | null>(null);
+
+  const { screenToFlowPosition, fitView } = useReactFlow();
   const searchParams = useSearchParams();
   const router       = useRouter();
   const workflowId   = searchParams.get("id");
@@ -137,11 +145,43 @@ function BuilderCanvas() {
 
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     selectNode(node.id);
+    setCtxMenu(null);
   }, [selectNode]);
 
   const onPaneClick = useCallback(() => {
     selectNode(null);
+    setCtxMenu(null);
   }, [selectNode]);
+
+  /* ── Context menu handlers ──────────────────────────────────────── */
+  const onNodeContextMenu = useCallback((e: React.MouseEvent, node: Node) => {
+    e.preventDefault();
+    setCtxMenu({
+      kind: "node",
+      x: e.clientX,
+      y: e.clientY,
+      nodeId: node.id,
+      nodeLabel: String(node.data?.label ?? node.id),
+      nodeColor: String(node.data?.color ?? "#7c3aed"),
+    });
+  }, []);
+
+  const onEdgeContextMenu = useCallback((e: React.MouseEvent, edge: Edge) => {
+    e.preventDefault();
+    setCtxMenu({ kind: "edge", x: e.clientX, y: e.clientY, edgeId: edge.id });
+  }, []);
+
+  const onPaneContextMenu = useCallback((e: React.MouseEvent | MouseEvent) => {
+    e.preventDefault();
+    const pos = screenToFlowPosition({ x: (e as React.MouseEvent).clientX, y: (e as React.MouseEvent).clientY });
+    setCtxMenu({
+      kind: "pane",
+      x: (e as React.MouseEvent).clientX,
+      y: (e as React.MouseEvent).clientY,
+      flowX: pos.x,
+      flowY: pos.y,
+    });
+  }, [screenToFlowPosition]);
 
   return (
     /* Full-height canvas area below the fixed TopBar */
@@ -308,6 +348,9 @@ function BuilderCanvas() {
             onConnect={onConnect}
             onNodeClick={onNodeClick}
             onPaneClick={onPaneClick}
+            onNodeContextMenu={onNodeContextMenu}
+            onEdgeContextMenu={onEdgeContextMenu}
+            onPaneContextMenu={onPaneContextMenu}
             nodeTypes={NODE_TYPES}
             onDragOver={onDragOver}
             onDrop={onDrop}
@@ -346,6 +389,17 @@ function BuilderCanvas() {
 
           {/* Execution logs overlay */}
           <ExecutionLogs />
+
+          {/* ── Custom context menu ──────────────────────────────── */}
+          <ContextMenu
+            target={ctxMenu}
+            onClose={() => setCtxMenu(null)}
+            onDeleteNode={removeNode}
+            onDuplicateNode={duplicateNode}
+            onSelectNode={selectNode}
+            onDeleteEdge={removeEdge}
+            onFitView={() => fitView({ duration: 400 })}
+          />
         </div>
 
         {/* ── Properties panel (right) ─────────────────────────────── */}
